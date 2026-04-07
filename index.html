@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estela Panelas 🍲 | Cardápio Digital</title>
-    <meta name="description" content="Cardápio digital da Estela Panelas - Comida artesanal feita com amor. Peça pelo WhatsApp!">
 
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,8 +23,6 @@
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             --radius: 12px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --danger: #FF4757;
-            --success: #25D366;
         }
 
         * {
@@ -42,34 +40,7 @@
             overflow-x: hidden;
         }
 
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-body);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease;
-        }
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Header */
+        /* Header Styles */
         .header {
             background: white;
             position: sticky;
@@ -88,7 +59,10 @@
         }
 
         @media (max-width: 768px) {
-            .banner-desktop { display: none; }
+            .banner-desktop {
+                display: none;
+                /* Oculta apenas no mobile/tablet */
+            }
         }
 
         .top-nav {
@@ -120,6 +94,7 @@
             line-height: 1.2;
         }
 
+
         .brand-name {
             font-size: 1.2rem;
             font-weight: 700;
@@ -132,6 +107,7 @@
             color: var(--text-muted);
         }
 
+
         .search-bar-container {
             padding: 0 1rem 0.8rem 1rem;
             max-width: 1200px;
@@ -139,11 +115,27 @@
         }
 
         @media (max-width: 480px) {
-            .brand-name { font-size: 1rem; }
-            .brand-subtitle { font-size: 0.75rem; }
-            .logo-main { height: 50px; width: 50px; }
-            .top-nav { padding: 0.6rem 0.8rem; }
-            .search-bar-container { padding-bottom: 0.6rem; }
+            
+.brand-name {
+        font-size: 1rem;
+    }
+
+    .brand-subtitle {
+        font-size: 0.75rem;
+    }
+
+            .logo-main {
+                height: 50px;
+                width: 50px;
+            }
+
+            .top-nav {
+                padding: 0.6rem 0.8rem;
+            }
+
+            .search-bar-container {
+                padding-bottom: 0.6rem;
+            }
         }
 
         .search-wrapper {
@@ -219,18 +211,33 @@
             gap: 1.5rem;
             position: sticky;
             top: 115px;
+            /* Ajustado para Desktop */
             z-index: 90;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         @media (max-width: 768px) {
-            .categories-nav { top: 105px; }
-        }
-        @media (max-width: 480px) {
-            .categories-nav { top: 95px; }
+
+            /* No Mobile, como o banner some, o header fica menor */
+            .categories-nav {
+                top: 105px;
+            }
         }
 
-        .categories-nav::-webkit-scrollbar { display: none; }
+        @media (max-width: 480px) {
+            .categories-nav {
+                top: 95px;
+            }
+        }
+
+        .categories-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .logo-mini {
+            height: 40px;
+            object-fit: contain;
+        }
 
         .categories-list {
             display: flex;
@@ -273,13 +280,6 @@
             gap: 1.5rem;
         }
 
-        .empty-menu {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 3rem;
-            font-size: 1.1rem;
-        }
-
         /* Product Card */
         .product-card {
             background: var(--bg-card);
@@ -289,7 +289,6 @@
             display: flex;
             transition: var(--transition);
             border: 1px solid transparent;
-            position: relative;
         }
 
         .product-card:hover {
@@ -304,29 +303,23 @@
             object-fit: cover;
         }
 
-        .product-card.esgotado {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .badge-esgotado {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: var(--danger);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
         @media (max-width: 480px) {
-            .product-card img { width: 100px; min-height: 100px; }
-            .product-info { padding: 0.8rem; }
-            .product-name { font-size: 0.95rem; }
-            .product-price { font-size: 1rem; }
+            .product-card img {
+                width: 100px;
+                min-height: 100px;
+            }
+
+            .product-info {
+                padding: 0.8rem;
+            }
+
+            .product-name {
+                font-size: 0.95rem;
+            }
+
+            .product-price {
+                font-size: 1rem;
+            }
         }
 
         .product-info {
@@ -373,9 +366,11 @@
             white-space: nowrap;
         }
 
-        .btn-add:hover { background: var(--primary-hover); }
+        .btn-add:hover {
+            background: var(--primary-hover);
+        }
 
-        /* Cart Sidebar */
+        /* Sidebar Cart */
         .cart-sidebar {
             position: fixed;
             right: -100%;
@@ -391,7 +386,9 @@
             box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
         }
 
-        .cart-sidebar.open { right: 0; }
+        .cart-sidebar.open {
+            right: 0;
+        }
 
         .cart-header {
             padding: 1.5rem;
@@ -423,14 +420,24 @@
             border-bottom: 1px solid #f1f1f1;
         }
 
-        .cart-item-info h4 { font-size: 0.95rem; margin-bottom: 4px; }
-        .cart-item-info p { font-size: 0.85rem; color: var(--text-muted); }
-        .cart-item-actions { text-align: right; }
+        .cart-item-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .cart-item-actions {
+            text-align: right;
+        }
 
         .btn-remove {
             background: none;
             border: none;
-            color: var(--danger);
+            color: #FF4757;
             cursor: pointer;
             font-size: 1.1rem;
             margin-top: 8px;
@@ -442,6 +449,7 @@
             border-top: 1px solid var(--border-color);
         }
 
+        /* Address Section Styles */
         .address-section {
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
@@ -455,7 +463,10 @@
             font-weight: 700;
         }
 
-        .form-group { margin-bottom: 1rem; }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
         .form-group label {
             display: block;
             font-size: 0.8rem;
@@ -463,6 +474,7 @@
             color: var(--text-muted);
             margin-bottom: 4px;
         }
+
         .form-group input {
             width: 100%;
             padding: 10px;
@@ -472,17 +484,30 @@
             outline: none;
             transition: var(--transition);
         }
-        .form-group input:focus { border-color: var(--primary); }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
         .form-group input[readonly] {
             background-color: #f8f9fa;
             cursor: not-allowed;
             color: var(--text-muted);
         }
 
-        .form-row { display: flex; gap: 10px; }
-        .form-row .form-group { flex: 1; }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
 
-        .cep-input-wrapper { display: flex; gap: 8px; }
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .cep-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
 
         .btn-search-cep {
             background: var(--text-main);
@@ -495,10 +520,13 @@
             font-weight: 600;
             transition: var(--transition);
         }
-        .btn-search-cep:hover { background: black; }
+
+        .btn-search-cep:hover {
+            background: black;
+        }
 
         .error-message {
-            color: var(--danger);
+            color: #FF4757;
             font-size: 0.75rem;
             margin-top: 4px;
             display: none;
@@ -537,7 +565,7 @@
 
         .btn-checkout {
             width: 100%;
-            background: var(--success);
+            background: #25D366;
             color: white;
             border: none;
             padding: 15px;
@@ -551,6 +579,7 @@
             gap: 10px;
             transition: var(--transition);
         }
+
         .btn-checkout:hover {
             transform: scale(1.02);
             background: #1ebd5b;
@@ -567,7 +596,11 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        .backdrop.active { display: block; opacity: 1; }
+
+        .backdrop.active {
+            display: block;
+            opacity: 1;
+        }
 
         .modal {
             position: fixed;
@@ -584,6 +617,7 @@
             transition: var(--transition);
             overflow: hidden;
         }
+
         .modal.active {
             display: block;
             opacity: 1;
@@ -596,7 +630,10 @@
             object-fit: cover;
         }
 
-        .modal-body { padding: 1.5rem; position: relative; }
+        .modal-body {
+            padding: 1.5rem;
+            position: relative;
+        }
 
         .close-modal {
             position: absolute;
@@ -616,7 +653,11 @@
             z-index: 10;
         }
 
-        .modal-info h3 { font-size: 1.4rem; margin-bottom: 8px; }
+        .modal-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+
         .product-description {
             color: var(--text-muted);
             font-size: 0.95rem;
@@ -690,11 +731,19 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .btn-add-confirm:hover { background: var(--primary-hover); }
 
-        .post-add-actions { display: flex; gap: 12px; width: 100%; }
+        .btn-add-confirm:hover {
+            background: var(--primary-hover);
+        }
 
-        .btn-continue, .btn-go-cart {
+        .post-add-actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn-continue,
+        .btn-go-cart {
             flex: 1;
             padding: 16px;
             border-radius: 12px;
@@ -705,33 +754,29 @@
             border: none;
         }
 
-        .btn-continue { background: #F1F2F6; color: var(--text-main); }
-        .btn-continue:hover { background: #E2E4E9; }
-        .btn-go-cart { background: var(--primary); color: white; }
-        .btn-go-cart:hover { background: var(--primary-hover); }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--text-main);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            z-index: 9999;
-            transition: transform 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .btn-continue {
+            background: #F1F2F6;
+            color: var(--text-main);
         }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-        .toast.error { background: var(--danger); }
-        .toast.success { background: var(--success); }
+
+        .btn-continue:hover {
+            background: #E2E4E9;
+        }
+
+        .btn-go-cart {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-go-cart:hover {
+            background: var(--primary-hover);
+        }
 
         @media (max-width: 600px) {
-            .menu-grid { grid-template-columns: 1fr; }
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
             .modal {
                 width: 100%;
                 height: auto;
@@ -742,33 +787,46 @@
                 border-radius: 20px 20px 0 0;
                 animation: slideUp 0.3s ease-out;
             }
-            .modal.active { transform: translate(-50%, 0) scale(1); }
-            .modal-image-wrapper img { height: 200px; }
+
+            .modal.active {
+                transform: translate(-50%, 0) scale(1);
+            }
+
+            .modal-image-wrapper img {
+                height: 200px;
+            }
         }
 
         @keyframes slideUp {
-            from { transform: translate(-50%, 100%); }
-            to { transform: translate(-50%, 0); }
+            from {
+                transform: translate(-50%, 100%);
+            }
+
+            to {
+                transform: translate(-50%, 0);
+            }
         }
     </style>
+  <meta property="og:title" content="Estela Panelas 🍲 | Cardápio Digital">
+  <meta name="twitter:title" content="Estela Panelas 🍲 | Cardápio Digital">
+  <meta name="description" content="Comida com Afeto">
+  <meta property="og:description" content="Comida com Afeto">
+  <meta name="twitter:description" content="Comida com Afeto">
+  <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7a63065-8cdf-4076-a471-587cd9645c59/id-preview-07d9cd74--6599f10e-6caf-4058-b3b8-91e40902b01d.lovable.app-1775566307476.png">
+  <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7a63065-8cdf-4076-a471-587cd9645c59/id-preview-07d9cd74--6599f10e-6caf-4058-b3b8-91e40902b01d.lovable.app-1775566307476.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:type" content="website">
 </head>
 
 <body>
 
-    <!-- Loading -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
-
-    <!-- Header -->
+    <!-- Header & Hero Section -->
     <header class="header">
         <div class="banner-desktop" role="img" aria-label="Banner Estela Panelas"></div>
         <div class="top-nav">
             <div class="brand-container">
                 <img src="Logo.png" alt="Estela Panelas Logo" class="logo-main">
+
                 <div class="brand-text">
                     <h1 class="brand-name">Estela Panelas 🍲</h1>
                     <h3 class="brand-subtitle">Comida Artesanal Feita com Amor</h3>
@@ -790,30 +848,42 @@
     </header>
 
     <main class="main-content">
+        <!-- Categories Navigation -->
         <nav class="categories-nav" aria-label="Categorias de produtos">
             <div class="categories-list" id="categoriesList">
                 <button class="cat-btn active" data-cat="todos">Todos</button>
+                <button class="cat-btn" data-cat="Massas">Massas</button>
+                <button class="cat-btn" data-cat="Bolos">Bolos</button>
+                <button class="cat-btn" data-cat="Sobremesas">Sobremesas</button>
             </div>
         </nav>
 
+        <!-- Menu Grid -->
         <section class="menu-section">
             <h1 class="section-title">Nosso Cardápio</h1>
-            <div class="menu-grid" id="menu"></div>
+            <div class="menu-grid" id="menu">
+                <!-- Produtos serão renderizados via JS -->
+            </div>
         </section>
     </main>
 
-    <!-- Cart Sidebar -->
+    <!-- Shopping Cart Sidebar -->
     <aside class="cart-sidebar" id="cart" aria-hidden="true">
         <div class="cart-header">
             <h2>Seu Pedido</h2>
             <button class="close-cart" id="closeCart">&times;</button>
         </div>
+
         <div class="cart-body" id="cartItems">
+            <!-- Itens do carrinho via JS -->
             <div class="empty-cart-msg">Seu carrinho está vazio.</div>
         </div>
+
         <footer class="cart-footer">
+            <!-- Seção de Endereço -->
             <div class="address-section">
                 <h3>Endereço de Entrega</h3>
+
                 <div class="form-group">
                     <label for="cep">CEP</label>
                     <div class="cep-input-wrapper">
@@ -822,10 +892,12 @@
                     </div>
                     <span id="cepError" class="error-message"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="endereco">Logradouro</label>
                     <input type="text" id="endereco" placeholder="Rua, Avenida, etc." readonly>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="numero">Número</label>
@@ -836,10 +908,12 @@
                         <input type="text" id="complemento" placeholder="Apto, sala, etc.">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label for="bairro">Bairro</label>
                     <input type="text" id="bairro" placeholder="Bairro" readonly>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cidade">Cidade</label>
@@ -867,10 +941,10 @@
         </footer>
     </aside>
 
-    <!-- Backdrop -->
+    <!-- Backdrop for Modals/Sidebar -->
     <div class="backdrop" id="backdrop"></div>
 
-    <!-- Product Detail Modal -->
+    <!-- Product Detail Popup -->
     <section class="modal" id="popup" aria-modal="true" role="dialog">
         <div class="modal-content">
             <button class="close-modal" id="closeModal">&times;</button>
@@ -880,7 +954,8 @@
                 </div>
                 <div class="modal-info">
                     <h3 id="pnome">Nome do Produto</h3>
-                    <p id="pdesc" class="product-description">Descrição do produto.</p>
+                    <p id="pdesc" class="product-description">Descrição detalhada do produto.</p>
+
                     <div class="product-actions">
                         <div class="quantity-selector">
                             <button class="qty-btn" id="menos" aria-label="Diminuir quantidade">−</button>
@@ -891,12 +966,16 @@
                             R$ <span id="ppreco">0,00</span>
                         </div>
                     </div>
+
                     <div class="observation-wrapper">
                         <label for="obs">Alguma observação?</label>
                         <textarea id="obs" placeholder="Ex: Sem cebola, ponto da carne, etc."></textarea>
                     </div>
+
                     <div class="modal-actions-container">
-                        <button class="btn-add-confirm" id="confirmar">Adicionar ao Carrinho</button>
+                        <button class="btn-add-confirm" id="confirmar">
+                            Adicionar ao Carrinho
+                        </button>
                         <div class="post-add-actions" id="postAddActions" style="display: none;">
                             <button class="btn-continue" id="btnContinuar">Comprar Mais</button>
                             <button class="btn-go-cart" id="btnIrCarrinho">Ir para o Carrinho</button>
@@ -907,27 +986,30 @@
         </div>
     </section>
 
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
     <script>
         /**
          * Estela Panelas - Cardápio Digital
-         * Integrado com Supabase (Lovable Cloud)
+         * Refatorado para código limpo e modular
          */
 
-        // --- Supabase Client ---
-        const SUPABASE_URL = 'https://souhzucfpahfhvzwnzgo.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdWh6dWNmcGFoZmh2enduemdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NjExMDEsImV4cCI6MjA5MTEzNzEwMX0.l6Vmc2GB5UC5gb7-i3G8NH6ZVEwADvnn_YAmOxhpfRo';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- Configurações e Dados ---
+        const CONFIG = {
+            telefone: "5531975540280",
+            cupons: {
+                "ESTELA10": 0.1,
+                "ESTELA20": 0.2,
+                "ESTELA30": 0.3
+            }
+        };
 
-        const CONFIG = { telefone: "5531975540280" };
+        const PRODUTOS = [
+            { id: 0, nome: "Lasanha", preco: 30, desc: "Lasanha artesanal gratinada com molho especial e queijo premium.", cat: "Massas", img: "Produto1.jpeg" },
+            { id: 1, nome: "Bolo Chocolate Morango", preco: 20, desc: "Bolo fofinho com recheio cremoso e morangos frescos selecionados.", cat: "Bolos", img: "Produto2.jpeg" },
+            { id: 2, nome: "Bolo Ferrero", preco: 25, desc: "Experiência única de chocolate com creme especial de avelã.", cat: "Sobremesas", img: "Ferrero.JPG" }
+        ];
 
-        // --- App State ---
+        // --- Estado da Aplicação ---
         let state = {
-            produtos: [],
-            categorias: [],
-            cupons: [],
             carrinho: [],
             produtoSelecionado: null,
             quantidadeAtual: 1,
@@ -936,7 +1018,7 @@
             termoBusca: ''
         };
 
-        // --- DOM Selectors ---
+        // --- Seletores DOM ---
         const dom = {
             menu: document.getElementById("menu"),
             cart: document.getElementById("cart"),
@@ -946,112 +1028,37 @@
             popup: document.getElementById("popup"),
             backdrop: document.getElementById("backdrop"),
             busca: document.getElementById("busca"),
-            categoriesList: document.getElementById("categoriesList"),
+            catBtns: document.querySelectorAll(".cat-btn"),
             qntText: document.getElementById("qnt"),
             pImg: document.getElementById("pimg"),
             pNome: document.getElementById("pnome"),
             pDesc: document.getElementById("pdesc"),
-            pPreco: document.getElementById("ppreco"),
-            loading: document.getElementById("loadingOverlay"),
-            toast: document.getElementById("toast")
+            pPreco: document.getElementById("ppreco")
         };
 
-        // --- Toast ---
-        function showToast(msg, type = '') {
-            dom.toast.textContent = msg;
-            dom.toast.className = 'toast show' + (type ? ' ' + type : '');
-            setTimeout(() => { dom.toast.className = 'toast'; }, 3000);
-        }
+        // --- Funções de Renderização ---
 
-        // --- Data Loading ---
-        async function carregarDados() {
-            try {
-                const [catRes, prodRes, cupRes] = await Promise.all([
-                    supabase.from('categories').select('*').order('order_position'),
-                    supabase.from('products').select('*, categories(name, slug)').eq('active', true),
-                    supabase.from('coupons').select('*')
-                ]);
-
-                if (catRes.error) throw catRes.error;
-                if (prodRes.error) throw prodRes.error;
-
-                state.categorias = catRes.data || [];
-                state.produtos = (prodRes.data || []).map(p => ({
-                    id: p.id,
-                    nome: p.name,
-                    desc: p.description || '',
-                    preco: parseFloat(p.price),
-                    cat: p.categories?.name || 'Outros',
-                    catSlug: p.categories?.slug || 'outros',
-                    img: p.image_url || '',
-                    stock: p.stock,
-                    active: p.active
-                }));
-                state.cupons = cupRes.data || [];
-
-                renderCategorias();
-                renderMenu();
-            } catch (err) {
-                console.error('Erro ao carregar dados:', err);
-                showToast('Erro ao carregar cardápio. Tente novamente.', 'error');
-            } finally {
-                dom.loading.classList.add('hidden');
-            }
-        }
-
-        // --- Render Categories ---
-        function renderCategorias() {
-            let html = '<button class="cat-btn active" data-cat="todos">Todos</button>';
-            state.categorias.forEach(c => {
-                html += `<button class="cat-btn" data-cat="${c.name}">${c.name}</button>`;
-            });
-            dom.categoriesList.innerHTML = html;
-
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.onclick = () => {
-                    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.categoriaAtiva = btn.dataset.cat;
-                    renderMenu();
-                };
-            });
-        }
-
-        // --- Render Menu ---
         function renderMenu() {
-            const filtrados = state.produtos.filter(p => {
+            const filtrados = PRODUTOS.filter(p => {
                 const matchBusca = p.nome.toLowerCase().includes(state.termoBusca.toLowerCase());
                 const matchCat = state.categoriaAtiva === 'todos' || p.cat === state.categoriaAtiva;
                 return matchBusca && matchCat;
             });
 
-            if (filtrados.length === 0) {
-                dom.menu.innerHTML = '<div class="empty-menu">Nenhum produto encontrado.</div>';
-                return;
-            }
-
-            dom.menu.innerHTML = filtrados.map(p => {
-                const esgotado = p.stock <= 0;
-                return `
-                    <article class="product-card${esgotado ? ' esgotado' : ''}">
-                        ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
-                        <img src="${p.img}" alt="${p.nome}" loading="lazy">
-                        <div class="product-info">
-                            <h3 class="product-name">${p.nome}</h3>
-                            <div class="product-footer">
-                                <span class="product-price">R$ ${p.preco.toFixed(2)}</span>
-                                ${esgotado
-                                    ? '<span style="color:var(--danger);font-weight:600;font-size:0.85rem;">Indisponível</span>'
-                                    : `<button class="btn-add" onclick="abrirModal('${p.id}')">Adicionar</button>`
-                                }
-                            </div>
+            dom.menu.innerHTML = filtrados.map(p => `
+                <article class="product-card">
+                    <img src="${p.img}" alt="${p.nome}" loading="lazy">
+                    <div class="product-info">
+                        <h3 class="product-name">${p.nome}</h3>
+                        <div class="product-footer">
+                            <span class="product-price">R$ ${p.preco.toFixed(2)}</span>
+                            <button class="btn-add" onclick="abrirModal(${p.id})">Adicionar</button>
                         </div>
-                    </article>
-                `;
-            }).join('');
+                    </div>
+                </article>
+            `).join('');
         }
 
-        // --- Cart Rendering ---
         function renderCarrinho() {
             if (state.carrinho.length === 0) {
                 dom.cartItems.innerHTML = '<div class="empty-cart-msg">Seu carrinho está vazio.</div>';
@@ -1068,11 +1075,13 @@
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <h4>${item.qnt}x ${item.nome}</h4>
-                            <p>${item.obs ? 'Obs: ' + item.obs : ''}</p>
+                            <p>${item.obs ? `Obs: ${item.obs}` : ''}</p>
                             <strong>R$ ${itemTotal.toFixed(2)}</strong>
                         </div>
                         <div class="cart-item-actions">
-                            <button class="btn-remove" onclick="removerDoCarrinho(${index})" aria-label="Remover item">🗑️</button>
+                            <button class="btn-remove" onclick="removerDoCarrinho(${index})" aria-label="Remover item">
+                                🗑️
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1083,22 +1092,21 @@
             dom.contador.innerText = state.carrinho.reduce((acc, curr) => acc + curr.qnt, 0);
         }
 
-        // --- Modal ---
-        window.abrirModal = (id) => {
-            const produto = state.produtos.find(p => p.id === id);
-            if (!produto || produto.stock <= 0) return;
+        // --- Ações do Carrinho ---
 
+        window.abrirModal = (id) => {
+            const produto = PRODUTOS.find(p => p.id === id);
             state.produtoSelecionado = produto;
             state.quantidadeAtual = 1;
 
             dom.pImg.src = produto.img;
-            dom.pImg.alt = produto.nome;
             dom.pNome.innerText = produto.nome;
             dom.pDesc.innerText = produto.desc;
             dom.pPreco.innerText = produto.preco.toFixed(2);
             dom.qntText.innerText = state.quantidadeAtual;
             document.getElementById("obs").value = "";
 
+            // Resetar botões do modal
             document.getElementById("confirmar").style.display = "block";
             document.getElementById("postAddActions").style.display = "none";
 
@@ -1106,8 +1114,13 @@
         };
 
         function toggleModal(show) {
-            dom.popup.classList.toggle('active', show);
-            dom.backdrop.classList.toggle('active', show);
+            if (show) {
+                dom.popup.classList.add('active');
+                dom.backdrop.classList.add('active');
+            } else {
+                dom.popup.classList.remove('active');
+                dom.backdrop.classList.remove('active');
+            }
         }
 
         window.removerDoCarrinho = (index) => {
@@ -1115,15 +1128,12 @@
             renderCarrinho();
         };
 
-        // --- Quantity Controls ---
+        // --- Event Listeners ---
+
+        // Controle de Quantidade no Modal
         document.getElementById("mais").onclick = () => {
-            const maxQty = state.produtoSelecionado ? state.produtoSelecionado.stock : 99;
-            if (state.quantidadeAtual < maxQty) {
-                state.quantidadeAtual++;
-                dom.qntText.innerText = state.quantidadeAtual;
-            } else {
-                showToast('Quantidade máxima disponível em estoque.', 'error');
-            }
+            state.quantidadeAtual++;
+            dom.qntText.innerText = state.quantidadeAtual;
         };
 
         document.getElementById("menos").onclick = () => {
@@ -1133,7 +1143,7 @@
             }
         };
 
-        // --- Add to Cart ---
+        // Adicionar ao Carrinho (Confirmação no Modal)
         document.getElementById("confirmar").onclick = () => {
             const obs = document.getElementById("obs").value;
             state.carrinho.push({
@@ -1143,40 +1153,52 @@
             });
 
             renderCarrinho();
-            showToast('Item adicionado ao carrinho!', 'success');
 
+            // Trocar botões para opções de continuação
             document.getElementById("confirmar").style.display = "none";
             document.getElementById("postAddActions").style.display = "flex";
         };
 
-        document.getElementById("btnContinuar").onclick = () => toggleModal(false);
+        // Opção: Comprar Mais (Voltar)
+        document.getElementById("btnContinuar").onclick = () => {
+            toggleModal(false);
+        };
+
+        // Opção: Ir para o Carrinho
         document.getElementById("btnIrCarrinho").onclick = () => {
             toggleModal(false);
             toggleCart(true);
         };
 
-        // --- Search ---
+        // Filtros de Categoria
+        dom.catBtns.forEach(btn => {
+            btn.onclick = () => {
+                dom.catBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.categoriaAtiva = btn.dataset.cat;
+                renderMenu();
+            };
+        });
+
+        // Busca
         dom.busca.onkeyup = (e) => {
             state.termoBusca = e.target.value;
             renderMenu();
         };
 
-        // --- Coupon ---
-        document.getElementById("btnCupom").onclick = async () => {
-            const codigo = document.getElementById("cupom").value.toUpperCase().trim();
-            if (!codigo) return;
-
-            const cupom = state.cupons.find(c => c.code === codigo && c.active);
-            if (cupom) {
-                state.descontoAtivo = cupom.discount_percent / 100;
-                showToast(`Cupom ${codigo} aplicado! ${cupom.discount_percent}% de desconto.`, 'success');
+        // Cupom
+        document.getElementById("btnCupom").onclick = () => {
+            const cupom = document.getElementById("cupom").value.toUpperCase();
+            if (CONFIG.cupons[cupom]) {
+                state.descontoAtivo = CONFIG.cupons[cupom];
+                alert(`Cupom ${cupom} aplicado com sucesso!`);
                 renderCarrinho();
             } else {
-                showToast('Cupom inválido.', 'error');
+                alert("Cupom inválido.");
             }
         };
 
-        // --- CEP ---
+        // Busca de CEP via API (ViaCEP)
         async function buscarCep() {
             const cep = document.getElementById("cep").value.replace(/\D/g, '');
             const errorEl = document.getElementById("cepError");
@@ -1217,17 +1239,20 @@
 
         document.getElementById("btnBuscaCep").onclick = buscarCep;
         document.getElementById("cep").onblur = buscarCep;
+
+        // Máscara para o campo de CEP
         document.getElementById("cep").oninput = (e) => {
             let v = e.target.value.replace(/\D/g, '');
             if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
             e.target.value = v;
         };
 
-        // --- WhatsApp Checkout ---
+        // WhatsApp
         document.getElementById("btnEnviar").onclick = () => {
-            if (state.carrinho.length === 0) return showToast('Seu carrinho está vazio!', 'error');
+            if (state.carrinho.length === 0) return alert("Seu carrinho está vazio!");
 
-            const campos = {
+            // Validação de endereço
+            const camposEndereco = {
                 cep: document.getElementById("cep").value,
                 logradouro: document.getElementById("endereco").value,
                 numero: document.getElementById("numero").value,
@@ -1235,17 +1260,17 @@
                 cidade: document.getElementById("cidade").value
             };
 
-            if (!campos.cep || !campos.logradouro || !campos.numero) {
-                return showToast('Preencha o endereço completo.', 'error');
+            if (!camposEndereco.cep || !camposEndereco.logradouro || !camposEndereco.numero) {
+                return alert("Por favor, preencha o endereço completo (CEP, Logradouro e Número).");
             }
 
             let msg = `*📦 NOVO PEDIDO - Estela Panelas*%0A%0A`;
+
             msg += `*📍 Endereço de Entrega:*%0A`;
-            msg += `${campos.logradouro}, ${campos.numero}%0A`;
-            const comp = document.getElementById("complemento").value;
-            if (comp) msg += `Comp: ${comp}%0A`;
-            msg += `${campos.bairro} - ${campos.cidade}/${document.getElementById("estado").value}%0A`;
-            msg += `CEP: ${campos.cep}%0A%0A`;
+            msg += `${camposEndereco.logradouro}, ${camposEndereco.numero}%0A`;
+            if (document.getElementById("complemento").value) msg += `Comp: ${document.getElementById("complemento").value}%0A`;
+            msg += `${camposEndereco.bairro} - ${camposEndereco.cidade}/${document.getElementById("estado").value}%0A`;
+            msg += `CEP: ${camposEndereco.cep}%0A%0A`;
 
             msg += `*🛒 Itens do Pedido:*%0A`;
             state.carrinho.forEach(p => {
@@ -1262,7 +1287,7 @@
             window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
         };
 
-        // --- Cart Toggle ---
+        // UI Controls
         const toggleCart = (show) => {
             dom.cart.classList.toggle('open', show);
             dom.backdrop.classList.toggle('active', show);
@@ -1276,8 +1301,8 @@
             toggleModal(false);
         };
 
-        // --- Init ---
-        carregarDados();
+        // Inicialização
+        renderMenu();
         renderCarrinho();
     </script>
 </body>
