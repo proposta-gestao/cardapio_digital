@@ -320,37 +320,96 @@
             e.target.value = v;
         };
 
-        // WhatsApp
-        document.getElementById("btnEnviar").onclick = () => {
+        // WhatsApp & Backend Integation
+        document.getElementById("btnEnviar").onclick = async () => {
+            const btn = document.getElementById("btnEnviar");
             if (state.carrinho.length === 0) return alert("Seu carrinho está vazio!");
+            
+            const nomeCliente = document.getElementById("clienteNome")?.value.trim() || 'Não Identificado';
+
             const camposEndereco = {
                 cep: document.getElementById("cep").value,
                 logradouro: document.getElementById("endereco").value,
                 numero: document.getElementById("numero").value,
                 bairro: document.getElementById("bairro").value,
-                cidade: document.getElementById("cidade").value
+                cidade: document.getElementById("cidade").value,
+                complemento: document.getElementById("complemento").value || ''
             };
+            
             if (!camposEndereco.cep || !camposEndereco.logradouro || !camposEndereco.numero) {
                 return alert("Por favor, preencha o endereço completo (CEP, Logradouro e Número).");
             }
+            
+            btn.disabled = true;
+            btn.innerHTML = `<span>Aguarde um momento...</span>`;
 
-            let msg = `*📦 NOVO PEDIDO - Estela Panelas*%0A%0A`;
-            msg += `*📍 Endereço de Entrega:*%0A`;
-            msg += `${camposEndereco.logradouro}, ${camposEndereco.numero}%0A`;
-            if (document.getElementById("complemento").value) msg += `Comp: ${document.getElementById("complemento").value}%0A`;
-            msg += `${camposEndereco.bairro} - ${camposEndereco.cidade}/${document.getElementById("estado").value}%0A`;
-            msg += `CEP: ${camposEndereco.cep}%0A%0A`;
-            msg += `*🛒 Itens do Pedido:*%0A`;
-            state.carrinho.forEach(p => {
-                msg += `✅ *${p.qnt}x ${p.nome}*%0A`;
-                if (p.obs) msg += `_Obs: ${p.obs}_%0A`;
-                msg += `Subtotal: R$ ${(p.preco * p.qnt).toFixed(2)}%0A%0A`;
-            });
-            if (state.descontoAtivo > 0) {
-                msg += `*🎟️ Cupom ${state.cupomAplicado}:* -${(state.descontoAtivo * 100).toFixed(0)}%%0A`;
+            try {
+                // Cálculo Numérico Real do Total
+                const totalNumerico = parseFloat(dom.total.innerText.replace(/\./g, "").replace(",", "."));
+                let subtotal = 0;
+                state.carrinho.forEach(p => subtotal += (p.preco * p.qnt));
+
+                // 1. Salvar Pedido Geral no Supabase
+                const orderPayload = {
+                    customer_name: nomeCliente,
+                    customer_phone: '',
+                    customer_address: camposEndereco,
+                    subtotal: subtotal,
+                    discount: state.descontoAtivo * 100, // convert back to percent if needed, but db expects percentage
+                    total: totalNumerico,
+                    status: 'pendente'
+                };
+
+                const { data: orderHeader, error: orderError } = await sb.from('orders').insert(orderPayload).select('id').single();
+                
+                if (orderError) throw orderError;
+                
+                // 2. Salvar Itens do Pedido no Supabase
+                const itemsPayload = state.carrinho.map(p => ({
+                    order_id: orderHeader.id,
+                    product_id: p.id,
+                    product_name: p.nome,
+                    quantity: p.qnt,
+                    unit_price: p.preco,
+                    total_price: p.preco * p.qnt,
+                    observations: p.obs || null
+                }));
+                
+                const { error: itemsError } = await sb.from('order_items').insert(itemsPayload);
+                
+                if (itemsError) throw itemsError;
+
+                // 3. Montar Mensagem do WhatsApp
+                let msg = `*📦 NOVO PEDIDO - Estela Panelas*%0A%0A`;
+                msg += `*👤 Cliente:* ${nomeCliente}%0A`;
+                msg += `*📍 Endereço de Entrega:*%0A`;
+                msg += `${camposEndereco.logradouro}, ${camposEndereco.numero}%0A`;
+                if (camposEndereco.complemento) msg += `Comp: ${camposEndereco.complemento}%0A`;
+                msg += `${camposEndereco.bairro} - ${camposEndereco.cidade}/${document.getElementById("estado").value}%0A`;
+                msg += `CEP: ${camposEndereco.cep}%0A%0A`;
+                msg += `*🛒 Itens do Pedido:*%0A`;
+                state.carrinho.forEach(p => {
+                    msg += `✅ *${p.qnt}x ${p.nome}*%0A`;
+                    if (p.obs) msg += `_Obs: ${p.obs}_%0A`;
+                    msg += `Subtotal: R$ ${(p.preco * p.qnt).toFixed(2)}%0A%0A`;
+                });
+                
+                if (state.descontoAtivo > 0) {
+                    msg += `*🎟️ Cupom ${state.cupomAplicado}:* -${(state.descontoAtivo * 100).toFixed(0)}%%0A`;
+                }
+                
+                msg += `*💰 TOTAL: R$ ${dom.total.innerText}*`;
+                
+                // Abrir WhatsApp
+                window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
+                
+            } catch (err) {
+                console.error("Erro ao processar pedido:", err);
+                alert("Houve um pequeno problema de comunicação. Se o erro persistir, nos contate pelo número " + CONFIG.telefone);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Enviar Pedido via WhatsApp</span><span class="wa-icon">📱</span>`;
             }
-            msg += `*💰 TOTAL: R$ ${dom.total.innerText}*`;
-            window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
         };
 
         // UI Controls

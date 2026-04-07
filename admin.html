@@ -46,9 +46,52 @@
 
         <nav class="admin-tabs">
             <button class="tab-btn active" data-tab="produtos">Produtos</button>
+            <button class="tab-btn" data-tab="dashboard">Vendas & Performance</button>
             <button class="tab-btn" data-tab="categorias">Categorias</button>
             <button class="tab-btn" data-tab="cupons">Cupons</button>
         </nav>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-content" id="tab-dashboard">
+            <div class="admin-toolbar">
+                <h2>Visão Geral de Vendas</h2>
+            </div>
+            
+            <div class="stats-row" id="dashboardStatsRow">
+                <div class="stat-card">
+                    <div class="stat-label">Faturamento Total</div>
+                    <div class="stat-value" id="dashTotalValue" style="color:var(--success)">R$ 0,00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pedidos Realizados</div>
+                    <div class="stat-value" id="dashTotalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total de Itens</div>
+                    <div class="stat-value" id="dashTotalItems">0</div>
+                </div>
+            </div>
+
+            <div class="admin-toolbar" style="margin-top: 2rem;">
+                <h2>Últimos Pedidos</h2>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Status</th>
+                            <th>Itens</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosBody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum pedido encontrado.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- Products Tab -->
         <div class="tab-content active" id="tab-produtos">
@@ -157,8 +200,21 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="prodImagem">URL da Imagem</label>
-                <input type="text" id="prodImagem" placeholder="URL ou nome do arquivo (ex: Produto1.jpeg)">
+                <label>Imagem do Produto</label>
+                <div class="image-gallery-container">
+                    <div class="gallery-toolbar">
+                        <input type="text" id="filtroGaleria" class="gallery-search" placeholder="🔍 Buscar imagem..." style="flex:1;">
+                        <label for="btnUploadNovaImagem" class="btn-sm btn-upload-gallery" style="margin-left: 10px; white-space: nowrap;">
+                            + Upload
+                        </label>
+                        <input type="file" id="btnUploadNovaImagem" accept="image/*" style="display:none;">
+                    </div>
+                    <div class="image-gallery-grid" id="imageGalleryGrid">
+                        <!-- Imagens populadas via JS -->
+                        <div style="padding:1rem;color:var(--text-muted);font-size:0.9rem;">Carregando imagens...</div>
+                    </div>
+                    <input type="hidden" id="prodImagemSelecionada">
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="fecharModal('modalProduto')">Cancelar</button>
@@ -216,6 +272,24 @@
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="fecharModal('modalCupom')">Cancelar</button>
                 <button class="btn-save" id="btnSalvarCupom">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Gallery Modal -->
+    <div class="admin-modal-backdrop" id="modalGaleriaCompleta">
+        <div class="admin-modal" style="max-width: 650px; display: flex; flex-direction: column; max-height: 90vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin-bottom: 0;">Galeria Completa</h3>
+                <button class="btn-cancel" style="padding: 6px 12px; flex: none;" onclick="fecharModal('modalGaleriaCompleta')">Fechar</button>
+            </div>
+            
+            <div class="gallery-toolbar" style="margin-bottom: 1rem; border-radius: 8px; padding: 0;">
+                <input type="text" id="filtroGaleriaCompleta" class="gallery-search" placeholder="🔍 Busque pelo nome do arquivo..." style="width: 100%; border: none;">
+            </div>
+            
+            <div class="image-gallery-grid" id="imageGalleryGridCompleta" style="max-height: none; overflow-y: auto; flex: 1; border: 1.5px solid var(--border-color); border-radius: 8px; padding: 1rem;">
+                <!-- Full list populated by JS -->
             </div>
         </div>
     </div>
