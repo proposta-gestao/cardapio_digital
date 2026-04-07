@@ -370,6 +370,31 @@
             background: var(--primary-hover);
         }
 
+        .btn-add:disabled {
+            background: #B2BEC3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Produto Esgotado */
+        .product-card.esgotado {
+            opacity: 0.7;
+        }
+
+        .badge-esgotado {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #FF4757;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* Sidebar Cart */
         .cart-sidebar {
             position: fixed;
@@ -876,9 +901,7 @@
         <nav class="categories-nav" aria-label="Categorias de produtos">
             <div class="categories-list" id="categoriesList">
                 <button class="cat-btn active" data-cat="todos">Todos</button>
-                <button class="cat-btn" data-cat="Massas">Massas</button>
-                <button class="cat-btn" data-cat="Bolos">Bolos</button>
-                <button class="cat-btn" data-cat="Sobremesas">Sobremesas</button>
+                <!-- Categorias dinâmicas via Supabase -->
             </div>
         </nav>
 
@@ -1010,27 +1033,27 @@
         </div>
     </section>
 
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
     <script>
         /**
          * Estela Panelas - Cardápio Digital
-         * Refatorado para código limpo e modular
+         * Integrado com Supabase: produtos, categorias e cupons dinâmicos
          */
 
-        // --- Configurações e Dados ---
-        const CONFIG = {
-            telefone: "5531975540280",
-            cupons: {
-                "ESTELA10": 0.1,
-                "ESTELA20": 0.2,
-                "ESTELA30": 0.3
-            }
-        };
+        // --- Supabase ---
+        const SUPABASE_URL = 'https://ggjggdtcsdtlaynnwrku.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnamdnZHRjc2R0bGF5bm53cmt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzMyNTMsImV4cCI6MjA5MTE0OTI1M30.a6oSuzqBOTX08ORtCHebcCX3VSrxIaAlSTBPOCY-rv0';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const PRODUTOS = [
-            { id: 0, nome: "Lasanha", preco: 30, desc: "Lasanha artesanal gratinada com molho especial e queijo premium.", cat: "Massas", img: "Produto1.jpeg" },
-            { id: 1, nome: "Bolo Chocolate Morango", preco: 20, desc: "Bolo fofinho com recheio cremoso e morangos frescos selecionados.", cat: "Bolos", img: "Produto2.jpeg" },
-            { id: 2, nome: "Bolo Ferrero", preco: 25, desc: "Experiência única de chocolate com creme especial de avelã.", cat: "Sobremesas", img: "Ferrero.JPG" }
-        ];
+        // --- Configurações ---
+        const CONFIG = { telefone: "5531975540280" };
+
+        // --- Dados dinâmicos (vindos do Supabase) ---
+        let PRODUTOS = [];
+        let CATEGORIAS = [];
+        let CUPONS = [];
 
         // --- Estado da Aplicação ---
         let state = {
@@ -1038,6 +1061,7 @@
             produtoSelecionado: null,
             quantidadeAtual: 1,
             descontoAtivo: 0,
+            cupomAplicado: null,
             categoriaAtiva: 'todos',
             termoBusca: ''
         };
@@ -1052,7 +1076,7 @@
             popup: document.getElementById("popup"),
             backdrop: document.getElementById("backdrop"),
             busca: document.getElementById("busca"),
-            catBtns: document.querySelectorAll(".cat-btn"),
+            categoriesList: document.getElementById("categoriesList"),
             qntText: document.getElementById("qnt"),
             pImg: document.getElementById("pimg"),
             pNome: document.getElementById("pnome"),
@@ -1060,7 +1084,75 @@
             pPreco: document.getElementById("ppreco")
         };
 
-        // --- Funções de Renderização ---
+        // =============================================
+        // CARREGAMENTO DO SUPABASE
+        // =============================================
+
+        async function inicializar() {
+            dom.menu.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Carregando cardápio...</p>';
+            try {
+                await Promise.all([carregarCategorias(), carregarProdutos(), carregarCupons()]);
+            } catch (e) {
+                dom.menu.innerHTML = '<p style="text-align:center;color:#FF4757;padding:3rem;">Erro ao carregar o cardápio. Tente recarregar a página.</p>';
+            }
+        }
+
+        async function carregarCategorias() {
+            const { data, error } = await sb
+                .from('categories')
+                .select('*')
+                .order('order_position');
+            if (error) throw error;
+            CATEGORIAS = data || [];
+            renderCategorias();
+        }
+
+        async function carregarProdutos() {
+            const { data, error } = await sb
+                .from('products')
+                .select('*, categories(name, slug)')
+                .eq('active', true)
+                .order('created_at');
+            if (error) throw error;
+            PRODUTOS = (data || []).map(p => ({
+                id: p.id,
+                nome: p.name,
+                desc: p.description || '',
+                preco: parseFloat(p.price),
+                img: p.image_url || 'Logo.png',
+                stock: p.stock,
+                cat: p.categories?.name || '',
+                catSlug: p.categories?.slug || ''
+            }));
+            renderMenu();
+        }
+
+        async function carregarCupons() {
+            const { data, error } = await sb
+                .from('coupons')
+                .select('code, discount_percent')
+                .eq('active', true);
+            if (error) throw error;
+            CUPONS = data || [];
+        }
+
+        // =============================================
+        // RENDERIZAÇÃO
+        // =============================================
+
+        function renderCategorias() {
+            // Mantém o botão "Todos" e adiciona as categorias dinamicamente
+            dom.categoriesList.innerHTML = '<button class="cat-btn active" data-cat="todos">Todos</button>';
+            CATEGORIAS.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.dataset.cat = cat.name;
+                btn.textContent = cat.name;
+                dom.categoriesList.appendChild(btn);
+            });
+            // Re-vincular eventos de clique
+            vincularFiltros();
+        }
 
         function renderMenu() {
             const filtrados = PRODUTOS.filter(p => {
@@ -1069,18 +1161,30 @@
                 return matchBusca && matchCat;
             });
 
-            dom.menu.innerHTML = filtrados.map(p => `
-                <article class="product-card">
-                    <img src="${p.img}" alt="${p.nome}" loading="lazy">
+            if (filtrados.length === 0) {
+                dom.menu.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Nenhum produto encontrado.</p>';
+                return;
+            }
+
+            dom.menu.innerHTML = filtrados.map(p => {
+                const esgotado = p.stock <= 0;
+                return `
+                <article class="product-card${esgotado ? ' esgotado' : ''}">
+                    <div style="position:relative;">
+                        <img src="${p.img}" alt="${p.nome}" loading="lazy">
+                        ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
+                    </div>
                     <div class="product-info">
                         <h3 class="product-name">${p.nome}</h3>
                         <div class="product-footer">
                             <span class="product-price">R$ ${p.preco.toFixed(2)}</span>
-                            <button class="btn-add" onclick="abrirModal(${p.id})">Adicionar</button>
+                            <button class="btn-add" onclick="abrirModal('${p.id}')" ${esgotado ? 'disabled' : ''}>
+                                ${esgotado ? 'Esgotado' : 'Adicionar'}
+                            </button>
                         </div>
                     </div>
                 </article>
-            `).join('');
+            `}).join('');
         }
 
         function renderCarrinho() {
@@ -1103,9 +1207,7 @@
                             <strong>R$ ${itemTotal.toFixed(2)}</strong>
                         </div>
                         <div class="cart-item-actions">
-                            <button class="btn-remove" onclick="removerDoCarrinho(${index})" aria-label="Remover item">
-                                🗑️
-                            </button>
+                            <button class="btn-remove" onclick="removerDoCarrinho(${index})" aria-label="Remover item">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -1116,10 +1218,13 @@
             dom.contador.innerText = state.carrinho.reduce((acc, curr) => acc + curr.qnt, 0);
         }
 
-        // --- Ações do Carrinho ---
+        // =============================================
+        // AÇÕES DO CARRINHO
+        // =============================================
 
         window.abrirModal = (id) => {
             const produto = PRODUTOS.find(p => p.id === id);
+            if (!produto || produto.stock <= 0) return;
             state.produtoSelecionado = produto;
             state.quantidadeAtual = 1;
 
@@ -1129,8 +1234,6 @@
             dom.pPreco.innerText = produto.preco.toFixed(2);
             dom.qntText.innerText = state.quantidadeAtual;
             document.getElementById("obs").value = "";
-
-            // Resetar botões do modal
             document.getElementById("confirmar").style.display = "block";
             document.getElementById("postAddActions").style.display = "none";
 
@@ -1138,13 +1241,8 @@
         };
 
         function toggleModal(show) {
-            if (show) {
-                dom.popup.classList.add('active');
-                dom.backdrop.classList.add('active');
-            } else {
-                dom.popup.classList.remove('active');
-                dom.backdrop.classList.remove('active');
-            }
+            dom.popup.classList.toggle('active', show);
+            dom.backdrop.classList.toggle('active', show);
         }
 
         window.removerDoCarrinho = (index) => {
@@ -1152,12 +1250,17 @@
             renderCarrinho();
         };
 
-        // --- Event Listeners ---
+        // =============================================
+        // EVENT LISTENERS
+        // =============================================
 
-        // Controle de Quantidade no Modal
+        // Quantidade no Modal
         document.getElementById("mais").onclick = () => {
-            state.quantidadeAtual++;
-            dom.qntText.innerText = state.quantidadeAtual;
+            const maxQty = state.produtoSelecionado?.stock || 99;
+            if (state.quantidadeAtual < maxQty) {
+                state.quantidadeAtual++;
+                dom.qntText.innerText = state.quantidadeAtual;
+            }
         };
 
         document.getElementById("menos").onclick = () => {
@@ -1167,42 +1270,29 @@
             }
         };
 
-        // Adicionar ao Carrinho (Confirmação no Modal)
+        // Adicionar ao Carrinho
         document.getElementById("confirmar").onclick = () => {
             const obs = document.getElementById("obs").value;
-            state.carrinho.push({
-                ...state.produtoSelecionado,
-                qnt: state.quantidadeAtual,
-                obs: obs
-            });
-
+            state.carrinho.push({ ...state.produtoSelecionado, qnt: state.quantidadeAtual, obs });
             renderCarrinho();
-
-            // Trocar botões para opções de continuação
             document.getElementById("confirmar").style.display = "none";
             document.getElementById("postAddActions").style.display = "flex";
         };
 
-        // Opção: Comprar Mais (Voltar)
-        document.getElementById("btnContinuar").onclick = () => {
-            toggleModal(false);
-        };
-
-        // Opção: Ir para o Carrinho
-        document.getElementById("btnIrCarrinho").onclick = () => {
-            toggleModal(false);
-            toggleCart(true);
-        };
+        document.getElementById("btnContinuar").onclick = () => toggleModal(false);
+        document.getElementById("btnIrCarrinho").onclick = () => { toggleModal(false); toggleCart(true); };
 
         // Filtros de Categoria
-        dom.catBtns.forEach(btn => {
-            btn.onclick = () => {
-                dom.catBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                state.categoriaAtiva = btn.dataset.cat;
-                renderMenu();
-            };
-        });
+        function vincularFiltros() {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.categoriaAtiva = btn.dataset.cat;
+                    renderMenu();
+                };
+            });
+        }
 
         // Busca
         dom.busca.onkeyup = (e) => {
@@ -1210,38 +1300,38 @@
             renderMenu();
         };
 
-        // Cupom
-        document.getElementById("btnCupom").onclick = () => {
-            const cupom = document.getElementById("cupom").value.toUpperCase();
-            if (CONFIG.cupons[cupom]) {
-                state.descontoAtivo = CONFIG.cupons[cupom];
-                alert(`Cupom ${cupom} aplicado com sucesso!`);
+        // Cupom — valida no Supabase
+        document.getElementById("btnCupom").onclick = async () => {
+            const codigo = document.getElementById("cupom").value.trim().toUpperCase();
+            if (!codigo) return;
+
+            const cupom = CUPONS.find(c => c.code === codigo);
+            if (cupom) {
+                state.descontoAtivo = parseFloat(cupom.discount_percent) / 100;
+                state.cupomAplicado = codigo;
+                alert(`✅ Cupom ${codigo} aplicado! ${cupom.discount_percent}% de desconto.`);
                 renderCarrinho();
             } else {
-                alert("Cupom inválido.");
+                alert("❌ Cupom inválido ou expirado.");
             }
         };
 
-        // Busca de CEP via API (ViaCEP)
+        // CEP via ViaCEP
         async function buscarCep() {
             const cep = document.getElementById("cep").value.replace(/\D/g, '');
             const errorEl = document.getElementById("cepError");
-
             if (cep.length !== 8) {
                 errorEl.innerText = "CEP inválido. Digite 8 números.";
                 errorEl.style.display = "block";
                 return;
             }
-
             errorEl.style.display = "none";
             const btn = document.getElementById("btnBuscaCep");
             btn.innerText = "Buscando...";
             btn.disabled = true;
-
             try {
                 const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const data = await response.json();
-
                 if (data.erro) {
                     errorEl.innerText = "CEP não encontrado.";
                     errorEl.style.display = "block";
@@ -1252,7 +1342,7 @@
                     document.getElementById("estado").value = data.uf;
                     document.getElementById("numero").focus();
                 }
-            } catch (error) {
+            } catch {
                 errorEl.innerText = "Erro ao buscar CEP. Tente novamente.";
                 errorEl.style.display = "block";
             } finally {
@@ -1263,8 +1353,6 @@
 
         document.getElementById("btnBuscaCep").onclick = buscarCep;
         document.getElementById("cep").onblur = buscarCep;
-
-        // Máscara para o campo de CEP
         document.getElementById("cep").oninput = (e) => {
             let v = e.target.value.replace(/\D/g, '');
             if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
@@ -1274,8 +1362,6 @@
         // WhatsApp
         document.getElementById("btnEnviar").onclick = () => {
             if (state.carrinho.length === 0) return alert("Seu carrinho está vazio!");
-
-            // Validação de endereço
             const camposEndereco = {
                 cep: document.getElementById("cep").value,
                 logradouro: document.getElementById("endereco").value,
@@ -1283,31 +1369,26 @@
                 bairro: document.getElementById("bairro").value,
                 cidade: document.getElementById("cidade").value
             };
-
             if (!camposEndereco.cep || !camposEndereco.logradouro || !camposEndereco.numero) {
                 return alert("Por favor, preencha o endereço completo (CEP, Logradouro e Número).");
             }
 
             let msg = `*📦 NOVO PEDIDO - Estela Panelas*%0A%0A`;
-
             msg += `*📍 Endereço de Entrega:*%0A`;
             msg += `${camposEndereco.logradouro}, ${camposEndereco.numero}%0A`;
             if (document.getElementById("complemento").value) msg += `Comp: ${document.getElementById("complemento").value}%0A`;
             msg += `${camposEndereco.bairro} - ${camposEndereco.cidade}/${document.getElementById("estado").value}%0A`;
             msg += `CEP: ${camposEndereco.cep}%0A%0A`;
-
             msg += `*🛒 Itens do Pedido:*%0A`;
             state.carrinho.forEach(p => {
                 msg += `✅ *${p.qnt}x ${p.nome}*%0A`;
                 if (p.obs) msg += `_Obs: ${p.obs}_%0A`;
                 msg += `Subtotal: R$ ${(p.preco * p.qnt).toFixed(2)}%0A%0A`;
             });
-
             if (state.descontoAtivo > 0) {
-                msg += `*🎟️ Desconto:* ${state.descontoAtivo * 100}%%0A`;
+                msg += `*🎟️ Cupom ${state.cupomAplicado}:* -${(state.descontoAtivo * 100).toFixed(0)}%%0A`;
             }
             msg += `*💰 TOTAL: R$ ${dom.total.innerText}*`;
-
             window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
         };
 
@@ -1320,14 +1401,12 @@
         document.getElementById("btnCart").onclick = () => toggleCart(true);
         document.getElementById("closeCart").onclick = () => toggleCart(false);
         document.getElementById("closeModal").onclick = () => toggleModal(false);
-        dom.backdrop.onclick = () => {
-            toggleCart(false);
-            toggleModal(false);
-        };
+        dom.backdrop.onclick = () => { toggleCart(false); toggleModal(false); };
 
-        // Inicialização
-        renderMenu();
-        renderCarrinho();
+        // =============================================
+        // INICIALIZAR
+        // =============================================
+        inicializar();
     </script>
 </body>
 
