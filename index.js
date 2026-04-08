@@ -143,6 +143,15 @@ function renderMenu() {
         return matchBusca && matchCat;
     });
 
+    // Ordenar: Disponíveis primeiro, Esgotados depois
+    filtrados.sort((a, b) => {
+        const aEsgotado = a.stock <= 0;
+        const bEsgotado = b.stock <= 0;
+        if (aEsgotado && !bEsgotado) return 1;
+        if (!aEsgotado && bEsgotado) return -1;
+        return 0; // Mantém a ordem original para os demais
+    });
+
     if (filtrados.length === 0) {
         dom.menu.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Nenhum produto encontrado.</p>';
         return;
@@ -152,7 +161,7 @@ function renderMenu() {
         const esgotado = p.stock <= 0;
         return `
         <article class="product-card${esgotado ? ' esgotado' : ''}">
-            <div style="position:relative;">
+            <div class="img-wrapper">
                 <img src="${p.img}" alt="${p.nome}" loading="lazy">
                 ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
             </div>
@@ -276,9 +285,10 @@ function toggleTipoEntrega(tipo) {
             }
         }
     } else {
-        // Ao voltar para entrega, não recalcula — mantém o estado atual do frete
+        // Ao voltar para entrega, recalcula o frete se o bairro estiver preenchido
         const bairro = document.getElementById('bairro')?.value;
         if (!bairro) state.freteAtivo = null;
+        else state.freteAtivo = calcularFrete(bairro);
     }
 
     renderTotalBreakdown();
@@ -313,11 +323,22 @@ function calcularFrete(bairro) {
 function renderTotalBreakdown() {
     const subtotal = state.carrinho.reduce((acc, p) => acc + (p.preco * p.qnt), 0);
     const desconto = subtotal * state.descontoAtivo;
+    const fmt = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-    // Atualiza subtotal da etapa 1 (com desconto aplicado)
+    // Atualiza infos resumidas da etapa 1
     if (dom.total) {
-        dom.total.innerText = (subtotal * (1 - state.descontoAtivo))
-            .toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        dom.total.innerText = (subtotal - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+    const step1Breakdown = document.getElementById('step1Breakdown');
+    if (step1Breakdown) {
+        if (desconto > 0) {
+            step1Breakdown.style.display = 'block';
+            document.getElementById('step1TotalOriginal').textContent = fmt(subtotal);
+            document.getElementById('step1Desconto').textContent = `- ${fmt(desconto)}`;
+            document.getElementById('step1CupomLabel').textContent = `Desconto (${state.cupomAplicado}):`;
+        } else {
+            step1Breakdown.style.display = 'none';
+        }
     }
 
     const els = {
@@ -719,7 +740,7 @@ document.getElementById("btnEnviar").onclick = async () => {
         // 4. Baixa Automática de Estoque
         // Observação: a lógica do estoque agora roda atomicamente via banco de dados usando um Trigger (Postgres).
 
-        // 4. Montar mensagem WhatsApp
+        // 5. Montar mensagem WhatsApp
         const fmtBRL = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
         let msg = `*📦 NOVO PEDIDO — Estela Panelas*%0A%0A`;
         msg += `*👤 Cliente:* ${nomeCliente}%0A`;
@@ -747,18 +768,25 @@ document.getElementById("btnEnviar").onclick = async () => {
         if (tipoEntrega === 'entrega') msg += `*🚚 Frete:* ${freteValor === 0 ? 'Grátis' : fmtBRL(freteValor)}%0A`;
         msg += `*💰 TOTAL: ${fmtBRL(totalFinal)}*`;
 
-        window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
+        // Exibir tela de sucesso e em 1 segundo mandar pro WhatsApp
+        const overlay = document.getElementById('orderSuccessOverlay');
+        if (overlay) overlay.style.display = 'flex';
 
-        // Limpar carrinho e fechar para evitar re-clique (evita múltiplas reduções de estoque acidentais)
-        state.carrinho = [];
-        renderCarrinho();
-        toggleCart(false);
-        carregarProdutos(); // Atualiza painel para espelhar estoque real localmente
+        setTimeout(() => {
+            window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
+            // Limpar carrinho e fechar após o envio para o WhatsApp
+            if (overlay) overlay.style.display = 'none';
+            state.carrinho = [];
+            renderCarrinho();
+            toggleCart(false);
+            carregarProdutos(); // Atualiza painel para espelhar estoque real localmente
+            btn.disabled = false;
+            btn.innerHTML = `<span>Enviar Pedido via WhatsApp</span><span class="wa-icon">📱</span>`;
+        }, 1800);
 
     } catch (err) {
         console.error("Erro ao processar pedido:", err);
         alert("Houve um problema ao registrar o pedido. Se persistir, contate: " + CONFIG.telefone);
-    } finally {
         btn.disabled = false;
         btn.innerHTML = `<span>Enviar Pedido via WhatsApp</span><span class="wa-icon">📱</span>`;
     }
