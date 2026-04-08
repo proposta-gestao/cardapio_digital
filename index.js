@@ -706,6 +706,15 @@ document.getElementById("btnEnviar").onclick = async () => {
         const { error: itemsError } = await sb.from('order_items').insert(itemsPayload);
         if (itemsError) throw itemsError;
 
+        // 4. Baixa Automática de Estoque (momento: pedido criado com sucesso)
+        // Evita overselling abatendo as quantidades exatas conferidas na checagem
+        const stockUpdates = state.carrinho.map(itemCart => {
+            const dbItem = freshStock.find(p => p.id === itemCart.id);
+            const novoEstoque = Math.max(0, dbItem.stock - itemCart.qnt); // Nunca negativo
+            return sb.from('products').update({ stock: novoEstoque }).eq('id', itemCart.id);
+        });
+        await Promise.all(stockUpdates);
+
         // 4. Montar mensagem WhatsApp
         const fmtBRL = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
         let msg = `*📦 NOVO PEDIDO — Estela Panelas*%0A%0A`;
@@ -735,6 +744,12 @@ document.getElementById("btnEnviar").onclick = async () => {
         msg += `*💰 TOTAL: ${fmtBRL(totalFinal)}*`;
 
         window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
+
+        // Limpar carrinho e fechar para evitar re-clique (evita múltiplas reduções de estoque acidentais)
+        state.carrinho = [];
+        renderCarrinho();
+        toggleCart(false);
+        carregarProdutos(); // Atualiza painel para espelhar estoque real localmente
 
     } catch (err) {
         console.error("Erro ao processar pedido:", err);
