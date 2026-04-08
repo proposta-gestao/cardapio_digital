@@ -677,8 +677,17 @@ document.getElementById("btnEnviar").onclick = async () => {
             if (error) console.warn('Aviso: não foi possível salvar cliente:', error.message);
         });
 
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        const orderId = window.crypto && crypto.randomUUID ? crypto.randomUUID() : generateUUID();
+
         // 2. Salvar Pedido no Supabase
         const orderPayload = {
+            id: orderId,
             customer_name: nomeCliente,
             customer_phone: telefoneCliente,
             customer_address: camposEndereco || { tipo: 'retirada' },
@@ -690,12 +699,13 @@ document.getElementById("btnEnviar").onclick = async () => {
             shipping_fee: freteValor
         };
 
-        const { data: orderHeader, error: orderError } = await sb.from('orders').insert(orderPayload).select('id').single();
+        // Sem usar .select() ou .single() para não exigir permissão de RLS de SELECT na tabela orders
+        const { error: orderError } = await sb.from('orders').insert(orderPayload);
         if (orderError) throw orderError;
 
         // 3. Salvar Itens do Pedido
         const itemsPayload = state.carrinho.map(p => ({
-            order_id: orderHeader.id,
+            order_id: orderId,
             product_id: p.id,
             product_name: p.nome,
             quantity: p.qnt,
@@ -706,14 +716,8 @@ document.getElementById("btnEnviar").onclick = async () => {
         const { error: itemsError } = await sb.from('order_items').insert(itemsPayload);
         if (itemsError) throw itemsError;
 
-        // 4. Baixa Automática de Estoque (momento: pedido criado com sucesso)
-        // Evita overselling abatendo as quantidades exatas conferidas na checagem
-        const stockUpdates = state.carrinho.map(itemCart => {
-            const dbItem = freshStock.find(p => p.id === itemCart.id);
-            const novoEstoque = Math.max(0, dbItem.stock - itemCart.qnt); // Nunca negativo
-            return sb.from('products').update({ stock: novoEstoque }).eq('id', itemCart.id);
-        });
-        await Promise.all(stockUpdates);
+        // 4. Baixa Automática de Estoque
+        // Observação: a lógica do estoque agora roda atomicamente via banco de dados usando um Trigger (Postgres).
 
         // 4. Montar mensagem WhatsApp
         const fmtBRL = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
