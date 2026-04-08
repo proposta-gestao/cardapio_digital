@@ -187,7 +187,6 @@
             const { data, error } = await sb
                 .from('products')
                 .select('*, categories(name)')
-                .or('archived.is.null,archived.eq.false')
                 .order('created_at', { ascending: false });
             if (error) {
                 showToast('Erro ao carregar produtos', 'error');
@@ -213,11 +212,10 @@
             renderCupons();
         }
 
-        // --- Stats ---
         function renderStats() {
-            const totalProdutos = produtos.length;
-            const ativos = produtos.filter(p => p.active).length;
-            const esgotados = produtos.filter(p => p.stock <= 0).length;
+            const ativos = produtos.filter(p => p.active && !p.archived).length;
+            const totalProdutos = produtos.filter(p => !p.archived).length;
+            const esgotados = produtos.filter(p => p.stock <= 0 && !p.archived).length;
             const totalCats = categorias.length;
 
             document.getElementById('statsRow').innerHTML = `
@@ -231,7 +229,7 @@
         function atualizarAlertaEstoque() {
             const panel = document.getElementById('stockAlertPanel');
             const list = document.getElementById('stockAlertList');
-            const baixoEstoque = produtos.filter(p => p.stock <= (p.min_stock_alert || 0));
+            const baixoEstoque = produtos.filter(p => !p.archived && p.stock <= (p.min_stock_alert || 0));
 
             if (baixoEstoque.length === 0) {
                 panel.style.display = 'none';
@@ -255,16 +253,35 @@
                 return;
             }
 
-            // Separar e ordenar: Ativos primeiro, Inativos depois
-            const ativos = produtos.filter(p => p.active);
-            const inativos = produtos.filter(p => !p.active);
-            const sortedProdutos = [...ativos, ...inativos];
+            // Separar e ordenar: Ativos primeiro, Inativos depois, Arquivados
+            const ativos = produtos.filter(p => p.active && !p.archived);
+            const inativos = produtos.filter(p => !p.active && !p.archived);
+            const arquivados = produtos.filter(p => p.archived);
+            const sortedProdutos = [...ativos, ...inativos, ...arquivados];
 
             tbody.innerHTML = sortedProdutos.map(p => {
                 const isEsgotado = p.stock <= 0;
                 let stockColor = isEsgotado ? '#FF4757' : (p.stock <= (p.min_stock_alert || 0) ? '#FAAD14' : 'inherit');
                 
-                const rowStyle = !p.active ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
+                let rowStyle = '';
+                if (p.archived) {
+                    rowStyle = 'opacity: 0.45; background-color: #ededed; filter: grayscale(15%);';
+                } else if (!p.active) {
+                    rowStyle = 'opacity: 0.6; background-color: #f9f9f9;';
+                }
+
+                const toggleHTML = p.archived 
+                    ? `<span class="badge" style="background:#ddd; color:#666;">Arquivado</span>`
+                    : `
+                        <label class="switch">
+                            <input type="checkbox" ${p.active ? 'checked' : ''} onchange="toggleProdutoAtivo('${p.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    `;
+
+                const actionButton = p.archived
+                    ? `<button class="btn-sm btn-edit" style="background:#ddd;color:#333;" onclick="desarquivarProduto('${p.id}')">Desarquivar</button>`
+                    : `<button class="btn-sm btn-archive" onclick="arquivarProduto('${p.id}')">Arquivar</button>`;
 
                 return `
                 <tr style="${rowStyle}">
@@ -273,16 +290,11 @@
                     <td>${p.categories?.name || '-'}</td>
                     <td>R$ ${parseFloat(p.price).toFixed(2)}</td>
                     <td style="color:${stockColor}; font-weight: ${stockColor !== 'inherit' ? '700' : 'normal'}">${p.stock}</td>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" ${p.active ? 'checked' : ''} onchange="toggleProdutoAtivo('${p.id}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </td>
+                    <td>${toggleHTML}</td>
                     <td>
                         <div class="actions-cell">
                             <button class="btn-sm btn-edit" onclick="editarProduto('${p.id}')">Editar</button>
-                            <button class="btn-sm btn-archive" onclick="arquivarProduto('${p.id}')">Arquivar</button>
+                            ${actionButton}
                         </div>
                     </td>
                 </tr>
@@ -587,6 +599,19 @@
                 showToast('Erro ao arquivar: ' + error.message, 'error');
             } else {
                 showToast('Produto arquivado!', 'success');
+                carregarProdutos();
+                renderStats();
+            }
+        };
+
+        window.desarquivarProduto = async (id) => {
+            if (!confirm('Deseja desarquivar este produto? Ele retornará como inativo para que você possa revisá-lo antes de ativar.')) return;
+            // Desarquiva e assegura que continue inativo inicialmente
+            const { error } = await sb.from('products').update({ archived: false, active: false }).eq('id', id);
+            if (error) {
+                showToast('Erro ao desarquivar: ' + error.message, 'error');
+            } else {
+                showToast('Produto desarquivado com sucesso!', 'success');
                 carregarProdutos();
                 renderStats();
             }
