@@ -134,16 +134,6 @@
                     <input type="text" id="cupom" placeholder="Tem um cupom?">
                     <button id="btnCupom">Aplicar</button>
                 </div>
-                <div class="step-1-breakdown" id="step1Breakdown" style="display:none; font-size: 0.9rem; margin-bottom: 8px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <span style="color:var(--text-muted);">Total Original:</span>
-                        <span id="step1TotalOriginal" style="color:var(--text-muted); text-decoration:line-through;">R$ 0,00</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; color:var(--success); font-weight:600;">
-                        <span id="step1CupomLabel">Desconto:</span>
-                        <span id="step1Desconto">- R$ 0,00</span>
-                    </div>
-                </div>
                 <div class="subtotal-line">
                     <span>Subtotal</span>
                     <span class="subtotal-value">R$ <span id="total">0,00</span></span>
@@ -332,14 +322,7 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-    <!-- Order Success Overlay -->
-    <div id="orderSuccessOverlay" style="display:none; position:fixed; inset:0; background:var(--primary); z-index:9999; color:white; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; animation: fadeIn 0.4s ease-out;">
-        <span style="font-size: 5rem; margin-bottom:1rem; animation: bounce 2s infinite;">🥘</span>
-        <h2 style="font-size:2rem; margin-bottom:1rem;">Pedido preparado!</h2>
-        <p style="font-size:1.15rem; max-width:400px; line-height:1.4;">Excelente escolha! Redirecionando para o WhatsApp para enviarmos seu pedido... 😋</p>
-    </div>
-
-    <script src="index.js"></script>
+        <script src="index.js"></script>
 </body>
 
 </html>
