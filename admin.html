@@ -49,6 +49,7 @@
             <button class="tab-btn" data-tab="dashboard">Vendas & Performance</button>
             <button class="tab-btn" data-tab="categorias">Categorias</button>
             <button class="tab-btn" data-tab="cupons">Cupons</button>
+            <button class="tab-btn" data-tab="configuracoes">⚙️ Configurações</button>
         </nav>
 
         <!-- Dashboard Tab -->
@@ -96,6 +97,13 @@
         <!-- Products Tab -->
         <div class="tab-content active" id="tab-produtos">
             <div class="stats-row" id="statsRow"></div>
+            
+            <!-- Painel de Alerta de Baixo Estoque -->
+            <div class="stock-alert-panel" id="stockAlertPanel">
+                <h3>⚠️ Alerta de Baixo Estoque</h3>
+                <ul class="stock-alert-list" id="stockAlertList"></ul>
+            </div>
+
             <div class="admin-toolbar">
                 <h2>Produtos</h2>
                 <button class="btn-primary" id="btnNovoProduto">+ Novo Produto</button>
@@ -161,6 +169,89 @@
         </div>
     </div>
 
+        <!-- Configurações Tab -->
+        <div class="tab-content" id="tab-configuracoes">
+
+            <!-- Store Address -->
+            <div class="config-card">
+                <div class="config-card-header">
+                    <h2>📍 Endereço da Loja</h2>
+                    <button class="btn-primary" id="btnSalvarConfig">Salvar Configurações</button>
+                </div>
+                <div class="config-card-body">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2">
+                            <label for="confNomeLoja">Nome da Loja</label>
+                            <input type="text" id="confNomeLoja" placeholder="Ex: Estela Panelas">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label for="confCep">CEP</label>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" id="confCep" placeholder="00000-000" maxlength="9">
+                                <button class="btn-sm btn-edit" id="btnBuscarCepConfig" style="white-space:nowrap;padding:0 14px;">Buscar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2">
+                            <label for="confLogradouro">Logradouro</label>
+                            <input type="text" id="confLogradouro" placeholder="Rua, Avenida...">
+                        </div>
+                        <div class="form-group" style="flex:0.6">
+                            <label for="confNumero">Número</label>
+                            <input type="text" id="confNumero" placeholder="123">
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label for="confComplemento">Complemento</label>
+                            <input type="text" id="confComplemento" placeholder="Apto, sala...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1.5">
+                            <label for="confBairro">Bairro</label>
+                            <input type="text" id="confBairro" placeholder="Bairro">
+                        </div>
+                        <div class="form-group" style="flex:2">
+                            <label for="confCidade">Cidade</label>
+                            <input type="text" id="confCidade" placeholder="Cidade">
+                        </div>
+                        <div class="form-group" style="flex:0.5">
+                            <label for="confEstado">UF</label>
+                            <input type="text" id="confEstado" placeholder="MG" maxlength="2">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confReferencia">Ponto de Referência</label>
+                        <input type="text" id="confReferencia" placeholder="Ex: Próximo ao mercado X">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Zones -->
+            <div class="config-card" style="margin-top:2rem;">
+                <div class="config-card-header">
+                    <h2>🚗 Tabela de Frete</h2>
+                    <button class="btn-primary" id="btnNovaZonaFrete">+ Nova Zona</button>
+                </div>
+                <div class="admin-table-wrapper" style="border-radius:0 0 var(--radius) var(--radius);">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Zona</th>
+                                <th>Bairros Cobertos</th>
+                                <th>Taxa</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zonaFreteBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhuma zona cadastrada.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     <!-- Product Modal -->
     <div class="admin-modal-backdrop" id="modalProduto">
         <div class="admin-modal">
@@ -180,24 +271,28 @@
                     <input type="number" id="prodPreco" step="0.01" min="0" placeholder="30.00">
                 </div>
                 <div class="form-group">
-                    <label for="prodEstoque">Estoque</label>
+                    <label for="prodEstoque">Estoque Atual</label>
                     <input type="number" id="prodEstoque" min="0" placeholder="50">
                 </div>
             </div>
             <div class="form-row">
+                <div class="form-group">
+                    <label for="prodEstoqueMin">Estoque Mín. (Alerta)</label>
+                    <input type="number" id="prodEstoqueMin" min="0" placeholder="5" title="Abaixo disso, gera alerta vermelho no painel">
+                </div>
                 <div class="form-group">
                     <label for="prodCategoria">Categoria</label>
                     <select id="prodCategoria">
                         <option value="">Selecione...</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="prodAtivo">Status</label>
-                    <select id="prodAtivo">
-                        <option value="true">Ativo</option>
-                        <option value="false">Inativo</option>
-                    </select>
-                </div>
+            </div>
+            <div class="form-group">
+                <label for="prodAtivo">Status</label>
+                <select id="prodAtivo">
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                </select>
             </div>
             <div class="form-group">
                 <label>Imagem do Produto</label>
@@ -290,6 +385,41 @@
             
             <div class="image-gallery-grid" id="imageGalleryGridCompleta" style="max-height: none; overflow-y: auto; flex: 1; border: 1.5px solid var(--border-color); border-radius: 8px; padding: 1rem;">
                 <!-- Full list populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Zone Modal -->
+    <div class="admin-modal-backdrop" id="modalZonaFrete">
+        <div class="admin-modal">
+            <h3 id="modalZonaFreteTitle">Nova Zona de Frete</h3>
+            <input type="hidden" id="zonaFreteId">
+            <div class="form-group">
+                <label for="zonaFreteName">Nome da Zona</label>
+                <input type="text" id="zonaFreteName" placeholder="Ex: Centro, Zona Sul">
+            </div>
+            <div class="form-group">
+                <label for="zonaFreteNeighborhoods">Bairros Cobertos</label>
+                <textarea id="zonaFreteNeighborhoods" placeholder="Ex: Centro, Savassi, Lourdes
+Separe cada bairro por vírgula" style="height:100px;"></textarea>
+                <small style="color:var(--text-muted);font-size:0.78rem;">Separe os bairros por vírgula. Os nomes devem ser idênticos aos retornados pelo ViaCEP.</small>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="zonaFreteFee">Taxa de Entrega (R$)</label>
+                    <input type="number" id="zonaFreteFee" step="0.50" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="zonaFreteActive">Status</label>
+                    <select id="zonaFreteActive">
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="fecharModal('modalZonaFrete')">Cancelar</button>
+                <button class="btn-save" id="btnSalvarZonaFrete">Salvar</button>
             </div>
         </div>
     </div>

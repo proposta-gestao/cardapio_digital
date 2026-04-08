@@ -559,3 +559,154 @@
             .stats-row { grid-template-columns: 1fr; }
             .form-row { flex-direction: column; gap: 0; }
         }
+
+        /* ===== Config Card (Configurações Tab) ===== */
+        .config-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .config-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: #FAFBFC;
+        }
+
+        .config-card-header h2 {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        /* ===== Estoque & Toggles ===== */
+        .stock-alert-panel {
+            background: #FFF1F0;
+            border-left: 4px solid #FF4757;
+            padding: 1.2rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .stock-alert-panel h3 {
+            color: #CF1322;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stock-alert-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .stock-alert-list li {
+            font-size: 0.85rem;
+            color: #5C2018;
+            padding: 4px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stock-alert-list li span {
+            font-weight: 700;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #00B894;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #00B894;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .btn-archive {
+            color: #FAAD14;
+            background: #FFFBE6;
+            border-color: #FFE58F;
+        }
+        .btn-archive:hover {
+            background: #FAAD14;
+            color: white;
+        }
+
+
+        .config-card-body {
+            padding: 1.5rem;
+        }
+
+        .config-card-body .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .config-card-body label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .config-card-body input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .config-card-body input:focus {
+            border-color: var(--primary);
+        }

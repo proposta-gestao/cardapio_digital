@@ -11,6 +11,7 @@
         let cupons = [];
         let pedidos = [];
         let imagensGaleria = [];
+        let zonasFrete = [];
 
         // --- DOM ---
         const $toast = document.getElementById('toast');
@@ -129,7 +130,14 @@
 
         // --- Data Loading ---
         async function carregarTudo() {
-            await Promise.all([carregarProdutos(), carregarCategorias(), carregarCupons(), carregarDashboard()]);
+            await Promise.all([
+                carregarProdutos(),
+                carregarCategorias(),
+                carregarCupons(),
+                carregarDashboard(),
+                carregarConfiguracoes(),
+                carregarZonasFrete()
+            ]);
             renderStats();
         }
 
@@ -176,9 +184,17 @@
         }
 
         async function carregarProdutos() {
-            const { data, error } = await sb.from('products').select('*, categories(name)').order('created_at', { ascending: false });
-            if (error) { showToast('Erro ao carregar produtos', 'error'); return; }
+            const { data, error } = await sb
+                .from('products')
+                .select('*, categories(name)')
+                .or('archived.is.null,archived.eq.false')
+                .order('created_at', { ascending: false });
+            if (error) {
+                showToast('Erro ao carregar produtos', 'error');
+                return;
+            }
             produtos = data || [];
+            atualizarAlertaEstoque();
             renderProdutos();
         }
 
@@ -212,39 +228,70 @@
             `;
         }
 
+        function atualizarAlertaEstoque() {
+            const panel = document.getElementById('stockAlertPanel');
+            const list = document.getElementById('stockAlertList');
+            const baixoEstoque = produtos.filter(p => p.stock <= (p.min_stock_alert || 0));
+
+            if (baixoEstoque.length === 0) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            panel.style.display = 'block';
+            list.innerHTML = baixoEstoque.map(p => `
+                <li>
+                    <span>${p.name}</span>
+                    <span>${p.stock} uni. (Mín: ${p.min_stock_alert || 0})</span>
+                </li>
+            `).join('');
+        }
+
         // --- Render Products ---
         function renderProdutos() {
             const tbody = document.getElementById('produtosBody');
             if (produtos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum produto cadastrado.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum produto encontrado.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = produtos.map(p => {
-                const stockBadge = p.stock <= 0
-                    ? '<span class="badge badge-out">Esgotado</span>'
-                    : p.stock <= 5
-                        ? `<span class="badge badge-inactive">${p.stock} un.</span>`
-                        : `<span style="font-weight:600;">${p.stock} un.</span>`;
-
+                const isEsgotado = p.stock <= 0;
+                let stockColor = isEsgotado ? '#FF4757' : (p.stock <= (p.min_stock_alert || 0) ? '#FAAD14' : 'inherit');
+                
                 return `
-                    <tr>
-                        <td><img src="${p.image_url || 'Logo.png'}" alt="${p.name}"></td>
-                        <td><strong>${p.name}</strong></td>
-                        <td>${p.categories?.name || '—'}</td>
-                        <td>R$ ${parseFloat(p.price).toFixed(2)}</td>
-                        <td>${stockBadge}</td>
-                        <td><span class="badge ${p.active ? 'badge-active' : 'badge-inactive'}">${p.active ? 'Ativo' : 'Inativo'}</span></td>
-                        <td>
-                            <div class="actions-cell">
-                                <button class="btn-sm btn-edit" onclick="editarProduto('${p.id}')">Editar</button>
-                                <button class="btn-sm btn-delete" onclick="excluirProduto('${p.id}', '${p.name.replace(/'/g, "\\'")}')">Excluir</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                <tr>
+                    <td><img src="${p.image_url || 'Logo.png'}" alt="Img" style="width:40px;height:40px;object-fit:cover;border-radius:6px;"></td>
+                    <td><strong>${p.name}</strong></td>
+                    <td>${p.categories?.name || '-'}</td>
+                    <td>R$ ${parseFloat(p.price).toFixed(2)}</td>
+                    <td style="color:${stockColor}; font-weight: ${stockColor !== 'inherit' ? '700' : 'normal'}">${p.stock}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" ${p.active ? 'checked' : ''} onchange="toggleProdutoAtivo('${p.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-sm btn-edit" onclick="editarProduto('${p.id}')">Editar</button>
+                            <button class="btn-sm btn-archive" onclick="arquivarProduto('${p.id}')">Arquivar</button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
         }
+
+        window.toggleProdutoAtivo = async (id, isActive) => {
+            const { error } = await sb.from('products').update({ active: isActive }).eq('id', id);
+            if (error) {
+                showToast('Erro ao atualizar status', 'error');
+                // Revert visual change
+                carregarProdutos(); 
+            } else {
+                showToast(isActive ? 'Produto ativado!' : 'Produto inativado!', 'success');
+            }
+        };
 
         // --- Render Categories ---
         function renderCategorias() {
@@ -440,6 +487,7 @@
             document.getElementById('prodDesc').value = '';
             document.getElementById('prodPreco').value = '';
             document.getElementById('prodEstoque').value = '';
+            document.getElementById('prodEstoqueMin').value = '0';
             document.getElementById('prodCategoria').value = '';
             document.getElementById('prodAtivo').value = 'true';
             document.getElementById('prodImagemSelecionada').value = '';
@@ -457,8 +505,9 @@
             document.getElementById('prodDesc').value = p.description || '';
             document.getElementById('prodPreco').value = p.price;
             document.getElementById('prodEstoque').value = p.stock;
+            document.getElementById('prodEstoqueMin').value = p.min_stock_alert || 0;
             document.getElementById('prodCategoria').value = p.category_id || '';
-            document.getElementById('prodAtivo').value = String(p.active);
+            document.getElementById('prodAtivo').value = p.active ? 'true' : 'false';
             
             carregarGaleria(p.image_url || '');
             abrirModal('modalProduto');
@@ -469,13 +518,14 @@
             const id = document.getElementById('produtoId').value;
             const nome = document.getElementById('prodNome').value.trim();
             const desc = document.getElementById('prodDesc').value.trim();
-            const preco = parseFloat(document.getElementById('prodPreco').value);
-            const estoque = parseInt(document.getElementById('prodEstoque').value) || 0;
-            const catId = document.getElementById('prodCategoria').value || null;
+            const price = parseFloat(document.getElementById('prodPreco').value);
+            const stock = parseInt(document.getElementById('prodEstoque').value) || 0;
+            const min_stock = parseInt(document.getElementById('prodEstoqueMin').value) || 0;
+            const category_id = document.getElementById('prodCategoria').value || null;
             const ativo = document.getElementById('prodAtivo').value === 'true';
             const imagemSelecionada = document.getElementById('prodImagemSelecionada').value.trim();
 
-            if (!nome || isNaN(preco) || preco <= 0) {
+            if (!nome || isNaN(price) || price <= 0) {
                 showToast('Preencha nome e preço corretamente.', 'error');
                 return;
             }
@@ -493,9 +543,10 @@
                 const payload = {
                     name: nome,
                     description: desc,
-                    price: preco,
-                    stock: estoque,
-                    category_id: catId,
+                    price: price,
+                    stock: stock,
+                    min_stock_alert: min_stock,
+                    category_id: category_id,
                     active: ativo,
                     image_url: imagemSelecionada
                 };
@@ -521,13 +572,16 @@
             }
         };
 
-        window.excluirProduto = async (id, nome) => {
-            if (!confirm(`Excluir "${nome}"? Essa ação não pode ser desfeita.`)) return;
-            const { error } = await sb.from('products').delete().eq('id', id);
-            if (error) { showToast('Erro ao excluir: ' + error.message, 'error'); return; }
-            showToast('Produto excluído!', 'success');
-            await carregarProdutos();
-            renderStats();
+        window.arquivarProduto = async (id) => {
+            if (!confirm('Deseja arquivar este produto? Ele não aparecerá mais no cardápio nem no sistema.')) return;
+            const { error } = await sb.from('products').update({ archived: true }).eq('id', id);
+            if (error) {
+                showToast('Erro ao arquivar: ' + error.message, 'error');
+            } else {
+                showToast('Produto arquivado!', 'success');
+                carregarProdutos();
+                renderStats();
+            }
         };
 
         // =================== CATEGORIES CRUD ===================
@@ -666,4 +720,165 @@
         // Enter to login
         document.getElementById('loginSenha').onkeydown = (e) => {
             if (e.key === 'Enter') document.getElementById('btnLogin').click();
+        };
+
+        // =================== CONFIGURAÇÕES ===================
+
+        async function carregarConfiguracoes() {
+            const { data, error } = await sb.from('store_settings').select('*').single();
+            if (error && error.code !== 'PGRST116') {
+                showToast('Erro ao carregar configurações', 'error');
+                return;
+            }
+            if (data) {
+                document.getElementById('confNomeLoja').value = data.store_name || '';
+                document.getElementById('confCep').value = data.address_zip || '';
+                document.getElementById('confLogradouro').value = data.address_street || '';
+                document.getElementById('confNumero').value = data.address_number || '';
+                document.getElementById('confComplemento').value = data.address_complement || '';
+                document.getElementById('confBairro').value = data.address_neighborhood || '';
+                document.getElementById('confCidade').value = data.address_city || '';
+                document.getElementById('confEstado').value = data.address_state || '';
+                document.getElementById('confReferencia').value = data.address_reference || '';
+            }
+        }
+
+        document.getElementById('btnSalvarConfig').onclick = async () => {
+            const btn = document.getElementById('btnSalvarConfig');
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            const payload = {
+                id: 1,
+                store_name: document.getElementById('confNomeLoja').value.trim(),
+                address_zip: document.getElementById('confCep').value.trim(),
+                address_street: document.getElementById('confLogradouro').value.trim(),
+                address_number: document.getElementById('confNumero').value.trim(),
+                address_complement: document.getElementById('confComplemento').value.trim(),
+                address_neighborhood: document.getElementById('confBairro').value.trim(),
+                address_city: document.getElementById('confCidade').value.trim(),
+                address_state: document.getElementById('confEstado').value.trim(),
+                address_reference: document.getElementById('confReferencia').value.trim(),
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await sb.from('store_settings').upsert(payload);
+            if (error) {
+                showToast('Erro ao salvar: ' + error.message, 'error');
+            } else {
+                showToast('Configurações salvas!', 'success');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Salvar Configurações';
+        };
+
+        document.getElementById('btnBuscarCepConfig').onclick = async () => {
+            const cep = document.getElementById('confCep').value.replace(/\D/g, '');
+            if (cep.length !== 8) { showToast('CEP inválido.', 'error'); return; }
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await res.json();
+                if (!data.erro) {
+                    document.getElementById('confLogradouro').value = data.logradouro || '';
+                    document.getElementById('confBairro').value = data.bairro || '';
+                    document.getElementById('confCidade').value = data.localidade || '';
+                    document.getElementById('confEstado').value = data.uf || '';
+                    document.getElementById('confNumero').focus();
+                } else {
+                    showToast('CEP não encontrado.', 'error');
+                }
+            } catch { showToast('Erro ao buscar CEP.', 'error'); }
+        };
+
+        document.getElementById('confCep').oninput = (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
+            e.target.value = v;
+        };
+
+        // =================== ZONAS DE FRETE ===================
+
+        async function carregarZonasFrete() {
+            const { data, error } = await sb.from('shipping_zones').select('*').order('created_at');
+            if (error) { showToast('Erro ao carregar zonas de frete', 'error'); return; }
+            zonasFrete = data || [];
+            renderZonasFrete();
+        }
+
+        function renderZonasFrete() {
+            const tbody = document.getElementById('zonaFreteBody');
+            if (zonasFrete.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhuma zona cadastrada.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = zonasFrete.map(z => `
+                <tr>
+                    <td><strong>${z.name}</strong></td>
+                    <td style="max-width:220px;white-space:normal;font-size:0.82rem;color:var(--text-muted);">${z.neighborhoods}</td>
+                    <td><strong>R$ ${parseFloat(z.delivery_fee).toFixed(2)}</strong></td>
+                    <td><span class="badge ${z.active ? 'badge-active' : 'badge-inactive'}">${z.active ? 'Ativo' : 'Inativo'}</span></td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-sm btn-edit" onclick="editarZonaFrete('${z.id}')">Editar</button>
+                            <button class="btn-sm btn-delete" onclick="excluirZonaFrete('${z.id}', '${z.name.replace(/'/g, "\\'")}')" >Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('btnNovaZonaFrete').onclick = () => {
+            document.getElementById('modalZonaFreteTitle').textContent = 'Nova Zona de Frete';
+            document.getElementById('zonaFreteId').value = '';
+            document.getElementById('zonaFreteName').value = '';
+            document.getElementById('zonaFreteNeighborhoods').value = '';
+            document.getElementById('zonaFreteFee').value = '';
+            document.getElementById('zonaFreteActive').value = 'true';
+            abrirModal('modalZonaFrete');
+        };
+
+        window.editarZonaFrete = (id) => {
+            const z = zonasFrete.find(x => x.id === id);
+            if (!z) return;
+            document.getElementById('modalZonaFreteTitle').textContent = 'Editar Zona de Frete';
+            document.getElementById('zonaFreteId').value = z.id;
+            document.getElementById('zonaFreteName').value = z.name;
+            document.getElementById('zonaFreteNeighborhoods').value = z.neighborhoods;
+            document.getElementById('zonaFreteFee').value = z.delivery_fee;
+            document.getElementById('zonaFreteActive').value = String(z.active);
+            abrirModal('modalZonaFrete');
+        };
+
+        document.getElementById('btnSalvarZonaFrete').onclick = async () => {
+            const id = document.getElementById('zonaFreteId').value;
+            const name = document.getElementById('zonaFreteName').value.trim();
+            const neighborhoods = document.getElementById('zonaFreteNeighborhoods').value.trim();
+            const fee = parseFloat(document.getElementById('zonaFreteFee').value);
+            const active = document.getElementById('zonaFreteActive').value === 'true';
+
+            if (!name || !neighborhoods || isNaN(fee) || fee < 0) {
+                showToast('Preencha todos os campos corretamente.', 'error');
+                return;
+            }
+
+            const payload = { name, neighborhoods, delivery_fee: fee, active };
+            let error;
+            if (id) {
+                ({ error } = await sb.from('shipping_zones').update(payload).eq('id', id));
+            } else {
+                ({ error } = await sb.from('shipping_zones').insert(payload));
+            }
+
+            if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
+            showToast(id ? 'Zona atualizada!' : 'Zona criada!', 'success');
+            fecharModal('modalZonaFrete');
+            await carregarZonasFrete();
+        };
+
+        window.excluirZonaFrete = async (id, name) => {
+            if (!confirm(`Excluir zona "${name}"?`)) return;
+            const { error } = await sb.from('shipping_zones').delete().eq('id', id);
+            if (error) { showToast('Erro ao excluir: ' + error.message, 'error'); return; }
+            showToast('Zona excluída!', 'success');
+            await carregarZonasFrete();
         };

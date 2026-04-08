@@ -393,6 +393,7 @@
             transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
         }
 
@@ -816,3 +817,353 @@
                 transform: translate(-50%, 0);
             }
         }
+
+        /* =============================================
+           CHECKOUT WIZARD
+        ============================================= */
+
+        /* Cart Header — agora com step indicator */
+        .cart-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            padding: 1.2rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .cart-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-header-top h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Carrinho vazio */
+        .empty-cart-msg {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 3rem 1rem;
+            font-size: 0.95rem;
+        }
+
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .step-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #E2E4E9;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(232, 93, 28, 0.15);
+        }
+
+        .step-dot.done {
+            background: #00B894;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border-color);
+            margin: 0 10px;
+            margin-bottom: 16px;
+            transition: background 0.4s ease;
+        }
+
+        /* Wizard Steps */
+        .wizard-step {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            animation: none;
+        }
+
+        .wizard-step.active {
+            display: flex;
+            animation: fadeInStep 0.25s ease;
+        }
+
+        @keyframes fadeInStep {
+            from { opacity: 0; transform: translateX(12px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Step body (scrollável) */
+        .step-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        /* Step footer (fixo na base) */
+        .step-footer {
+            padding: 1rem 1.5rem 1.5rem;
+            background: #F9F9FB;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Subtotal linha (etapa 1) */
+        .subtotal-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 4px 0;
+        }
+
+        .subtotal-value {
+            color: var(--primary);
+        }
+
+        /* Botão Continuar */
+        .btn-continue-step {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-continue-step:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-continue-step:disabled {
+            background: #B2BEC3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-arrow {
+            font-size: 1.1rem;
+        }
+
+        /* Botão Voltar */
+        .btn-back-step {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .btn-back-step:hover {
+            color: var(--primary);
+        }
+
+        /* Seções do formulário */
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 1rem;
+        }
+
+        /* Radio Cards — Entrega/Retirada */
+        .delivery-type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .delivery-radio-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 16px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            background: white;
+            position: relative;
+        }
+
+        .delivery-radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .delivery-radio-card.selected {
+            border-color: var(--primary);
+            background: #FFF5F1;
+            box-shadow: 0 0 0 3px rgba(232, 93, 28, 0.1);
+        }
+
+        .delivery-radio-icon {
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+        }
+
+        .delivery-radio-label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .delivery-radio-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* Card de endereço da loja (retirada) */
+        .store-address-card {
+            background: #F0FDF4;
+            border: 1.5px solid #A7F3D0;
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .store-address-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .store-address-text {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-main);
+        }
+
+        /* CEP wrapper (sem botão) */
+        .cep-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .cep-wrapper input {
+            flex: 1;
+            padding-right: 36px;
+        }
+
+        .cep-status {
+            position: absolute;
+            right: 12px;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        /* Info de frete */
+        .frete-info {
+            background: #FFF8E1;
+            border: 1.5px solid #FFE082;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .frete-info.frete-ok {
+            background: #F0FDF4;
+            border-color: #A7F3D0;
+            color: #065F46;
+        }
+
+        .frete-info.frete-erro {
+            background: #FFF1F0;
+            border-color: #FFA39E;
+            color: #FF4757;
+        }
+
+        /* Total Breakdown (etapa 2) */
+        .total-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .breakdown-row.total-row {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+
+        .discount-value {
+            color: #00B894;
+            font-weight: 600;
+        }

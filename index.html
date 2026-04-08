@@ -102,88 +102,172 @@
         </section>
     </main>
 
-    <!-- Shopping Cart Sidebar -->
+    <!-- Shopping Cart Sidebar (Wizard 2 Etapas) -->
     <aside class="cart-sidebar" id="cart" aria-hidden="true">
+
+        <!-- Header + Step Indicator -->
         <div class="cart-header">
-            <h2>Seu Pedido</h2>
-            <button class="close-cart" id="closeCart">&times;</button>
+            <div class="cart-header-top">
+                <h2>Seu Pedido</h2>
+                <button class="close-cart" id="closeCart">&times;</button>
+            </div>
+            <div class="step-indicator">
+                <div class="step-item">
+                    <div class="step-dot active" id="stepDot1">1</div>
+                    <span class="step-label">Revisão</span>
+                </div>
+                <div class="step-line" id="stepLine"></div>
+                <div class="step-item">
+                    <div class="step-dot" id="stepDot2">2</div>
+                    <span class="step-label">Entrega</span>
+                </div>
+            </div>
         </div>
 
-        <div class="cart-body" id="cartItems">
-            <!-- Itens do carrinho via JS -->
-            <div class="empty-cart-msg">Seu carrinho está vazio.</div>
+        <!-- ===== ETAPA 1: Revisão do Pedido ===== -->
+        <div class="wizard-step active" id="wizardStep1">
+            <div class="step-body" id="cartItems">
+                <div class="empty-cart-msg">Seu carrinho está vazio.</div>
+            </div>
+            <div class="step-footer">
+                <div class="coupon-section">
+                    <input type="text" id="cupom" placeholder="Tem um cupom?">
+                    <button id="btnCupom">Aplicar</button>
+                </div>
+                <div class="subtotal-line">
+                    <span>Subtotal</span>
+                    <span class="subtotal-value">R$ <span id="total">0,00</span></span>
+                </div>
+                <button class="btn-continue-step" id="btnProximaEtapa" disabled>
+                    Continuar <span class="btn-arrow">→</span>
+                </button>
+            </div>
         </div>
 
-        <footer class="cart-footer">
-            <!-- Seção de Pessoal -->
-            <div class="address-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-                <h3>Seus Dados</h3>
-                <div class="form-group">
-                    <label for="clienteNome">Seu Nome</label>
-                    <input type="text" id="clienteNome" placeholder="Ex: Maria Silva">
-                </div>
-            </div>
-            
-            <!-- Seção de Endereço -->
-            <div class="address-section">
-                <h3>Endereço de Entrega</h3>
+        <!-- ===== ETAPA 2: Entrega ===== -->
+        <div class="wizard-step" id="wizardStep2">
+            <div class="step-body" id="step2Body">
+                <button class="btn-back-step" id="btnVoltarEtapa">← Voltar</button>
 
-                <div class="form-group">
-                    <label for="cep">CEP</label>
-                    <div class="cep-input-wrapper">
-                        <input type="text" id="cep" placeholder="00000-000" maxlength="9" aria-label="CEP">
-                        <button id="btnBuscaCep" class="btn-search-cep">Buscar</button>
-                    </div>
-                    <span id="cepError" class="error-message"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="endereco">Logradouro</label>
-                    <input type="text" id="endereco" placeholder="Rua, Avenida, etc." readonly>
-                </div>
-
-                <div class="form-row">
+                <!-- Dados Pessoais -->
+                <div class="form-section">
+                    <p class="form-section-title">Seus Dados</p>
                     <div class="form-group">
-                        <label for="numero">Número</label>
-                        <input type="text" id="numero" placeholder="123">
+                        <label for="clienteNome">Nome completo *</label>
+                        <input type="text" id="clienteNome" placeholder="Ex: Maria Silva">
                     </div>
                     <div class="form-group">
-                        <label for="complemento">Complemento</label>
-                        <input type="text" id="complemento" placeholder="Apto, sala, etc.">
+                        <label for="clienteTelefone">Telefone / WhatsApp *</label>
+                        <input type="tel" id="clienteTelefone" placeholder="(31) 99999-9999">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="bairro">Bairro</label>
-                    <input type="text" id="bairro" placeholder="Bairro" readonly>
+                <!-- Tipo de Recebimento -->
+                <div class="form-section">
+                    <p class="form-section-title">Como prefere receber?</p>
+                    <div class="delivery-type-grid">
+                        <label class="delivery-radio-card" id="cardRetirada" for="radioRetirada">
+                            <input type="radio" name="tipoEntrega" value="retirada" id="radioRetirada">
+                            <span class="delivery-radio-icon">🏠</span>
+                            <span class="delivery-radio-label">Retirada</span>
+                            <span class="delivery-radio-sub">Retire na loja</span>
+                        </label>
+                        <label class="delivery-radio-card selected" id="cardEntrega" for="radioEntrega">
+                            <input type="radio" name="tipoEntrega" value="entrega" id="radioEntrega" checked>
+                            <span class="delivery-radio-icon">🚗</span>
+                            <span class="delivery-radio-label">Entrega</span>
+                            <span class="delivery-radio-sub">Receba em casa</span>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cidade">Cidade</label>
-                        <input type="text" id="cidade" placeholder="Cidade" readonly>
+                <!-- Bloco Retirada -->
+                <div id="blocoRetirada" style="display:none;">
+                    <div class="store-address-card">
+                        <div class="store-address-icon">📍</div>
+                        <div id="enderecoLojaDisplay" class="store-address-text">
+                            Carregando endereço...
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="estado">Estado</label>
-                        <input type="text" id="estado" placeholder="UF" readonly maxlength="2">
+                </div>
+
+                <!-- Bloco Entrega -->
+                <div id="blocoEntrega">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="cep">CEP</label>
+                            <div class="cep-wrapper">
+                                <input type="text" id="cep" placeholder="00000-000" maxlength="9" autocomplete="postal-code" aria-label="CEP">
+                                <span class="cep-status" id="cepStatus"></span>
+                            </div>
+                            <span id="cepError" class="error-message"></span>
+                        </div>
+                        <div id="enderecoFields" style="display:none;">
+                            <div class="form-group">
+                                <label for="endereco">Logradouro</label>
+                                <input type="text" id="endereco" placeholder="Rua, Avenida..." readonly>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="numero">Número *</label>
+                                    <input type="text" id="numero" placeholder="123">
+                                </div>
+                                <div class="form-group">
+                                    <label for="complemento">Complemento</label>
+                                    <input type="text" id="complemento" placeholder="Apto...">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="bairro">Bairro</label>
+                                <input type="text" id="bairro" placeholder="Bairro" readonly>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cidade">Cidade</label>
+                                    <input type="text" id="cidade" placeholder="Cidade" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="estado">UF</label>
+                                    <input type="text" id="estado" placeholder="UF" readonly maxlength="2">
+                                </div>
+                            </div>
+                            <div class="frete-info" id="freteInfo" style="display:none;">
+                                <span id="freteInfoText"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="coupon-section">
-                <input type="text" id="cupom" placeholder="Tem um cupom?">
-                <button id="btnCupom">Aplicar</button>
+            <!-- Footer Etapa 2 -->
+            <div class="step-footer">
+                <div class="total-breakdown">
+                    <div class="breakdown-row">
+                        <span>Subtotal</span>
+                        <span id="breakdownSubtotal">R$ 0,00</span>
+                    </div>
+                    <div class="breakdown-row" id="rowDesconto" style="display:none;">
+                        <span>Desconto</span>
+                        <span id="breakdownDesconto" class="discount-value">—</span>
+                    </div>
+                    <div class="breakdown-row" id="rowFrete" style="display:none;">
+                        <span>Frete</span>
+                        <span id="breakdownFrete">—</span>
+                    </div>
+                    <div class="breakdown-row total-row">
+                        <span>Total</span>
+                        <strong id="breakdownTotal">R$ 0,00</strong>
+                    </div>
+                </div>
+                <button class="btn-checkout" id="btnEnviar">
+                    <span>Enviar Pedido via WhatsApp</span>
+                    <span class="wa-icon">📱</span>
+                </button>
             </div>
-            <div class="total-section">
-                <span>Total</span>
-                <span class="total-price">R$ <span id="total">0,00</span></span>
-            </div>
-            <button class="btn-checkout" id="btnEnviar">
-                <span>Enviar Pedido via WhatsApp</span>
-                <span class="wa-icon">📱</span>
-            </button>
-        </footer>
+        </div>
+
     </aside>
+
 
     <!-- Backdrop for Modals/Sidebar -->
     <div class="backdrop" id="backdrop"></div>
@@ -206,8 +290,13 @@
                             <span id="qnt" class="qty-value">1</span>
                             <button class="qty-btn" id="mais" aria-label="Aumentar quantidade">+</button>
                         </div>
-                        <div class="price-display">
-                            R$ <span id="ppreco">0,00</span>
+                        <div class="price-display" style="display:flex; flex-direction:column; align-items:flex-end; min-width: 120px;">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight:600;">
+                                Unitário: R$ <span id="ppreco">0,00</span>
+                            </div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+                                R$ <span id="psubtotal">0,00</span>
+                            </div>
                         </div>
                     </div>
 
