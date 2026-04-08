@@ -582,6 +582,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
         /* ===== Estoque & Toggles ===== */
         .stock-alert-panel {
             background: #FFF1F0;
@@ -640,7 +641,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background-color: #FF4757;
             transition: .3s;
             border-radius: 34px;
         }

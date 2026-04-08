@@ -255,12 +255,19 @@
                 return;
             }
 
-            tbody.innerHTML = produtos.map(p => {
+            // Separar e ordenar: Ativos primeiro, Inativos depois
+            const ativos = produtos.filter(p => p.active);
+            const inativos = produtos.filter(p => !p.active);
+            const sortedProdutos = [...ativos, ...inativos];
+
+            tbody.innerHTML = sortedProdutos.map(p => {
                 const isEsgotado = p.stock <= 0;
                 let stockColor = isEsgotado ? '#FF4757' : (p.stock <= (p.min_stock_alert || 0) ? '#FAAD14' : 'inherit');
                 
+                const rowStyle = !p.active ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
+
                 return `
-                <tr>
+                <tr style="${rowStyle}">
                     <td><img src="${p.image_url || 'Logo.png'}" alt="Img" style="width:40px;height:40px;object-fit:cover;border-radius:6px;"></td>
                     <td><strong>${p.name}</strong></td>
                     <td>${p.categories?.name || '-'}</td>
@@ -290,6 +297,7 @@
                 carregarProdutos(); 
             } else {
                 showToast(isActive ? 'Produto ativado!' : 'Produto inativado!', 'success');
+                carregarProdutos(); // Relocates product to correct group instantly
             }
         };
 
@@ -368,7 +376,7 @@
             }
             
             let html = '';
-            let limit = isCompleto ? files.length : 10;
+            let limit = isCompleto ? files.length : 9;
             let filesToShow = files.slice(0, limit);
             
             filesToShow.forEach(file => {
@@ -381,10 +389,10 @@
                 `;
             });
             
-            if (!isCompleto && files.length > 10) {
+            if (!isCompleto && files.length > 9) {
                 html += `
                     <div class="gallery-item" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F1F2F6;color:var(--primary);font-size:0.8rem;text-align:center;font-weight:700;" onclick="abrirGaleriaCompleta()">
-                        <span style="font-size:1.2rem;">+${files.length - 10}</span>
+                        <span style="font-size:1.2rem;">+${files.length - 9}</span>
                         Ver Todas
                     </div>
                 `;
