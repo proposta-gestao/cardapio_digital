@@ -283,6 +283,8 @@
             transition: var(--transition);
             border: 1px solid transparent;
             cursor: pointer;
+            height: 135px;
+            align-items: stretch;
         }
 
         .product-card:hover {
@@ -290,12 +292,12 @@
             border-color: var(--primary);
         }
 
-        /* Wrapper da imagem do produto — tamanho fixo 120x120 em todos os cards */
+        /* Wrapper da imagem do produto — tamanho fixo 135x135 em todos os cards */
         .product-img-wrap {
             position: relative;
-            width: 120px;
-            min-width: 120px;
-            height: 120px;
+            width: 135px;
+            min-width: 135px;
+            height: 135px;
             flex-shrink: 0;
             overflow: hidden;
         }
@@ -309,27 +311,23 @@
 
         /* Legado: garante retrocompat caso algum img direto no card */
         .product-card > img {
-            width: 120px;
-            height: 120px;
+            width: 135px;
+            height: 135px;
             object-fit: cover;
         }
 
+        .product-info {
+            padding: 0.8rem 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+        }
+
         @media (max-width: 480px) {
-            .product-card img,
-            .product-img-wrap {
-                width: 135px;
-                min-width: 135px;
-                height: 135px;
-            }
-
-            .product-card {
-                height: 135px;
-                align-items: stretch;
-            }
-
             .product-info {
                 padding: 0.6rem 0.8rem;
-                justify-content: center;
             }
 
             .product-name {
@@ -339,15 +337,6 @@
             .product-price {
                 font-size: 1rem;
             }
-        }
-
-        .product-info {
-            padding: 1rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 8px;
         }
 
         .product-name {
@@ -665,20 +654,37 @@
         }
 
         .modal.active {
-            display: block;
+            display: flex; /* Changed to flex to support internal scrolling */
+            flex-direction: column;
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
+            max-height: 90vh; /* Constraint against screen height */
+        }
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0; /* allows shrinking in flex context */
+        }
+
+        .modal-image-wrapper {
+            flex-shrink: 0;
         }
 
         .modal-image-wrapper img {
             width: 100%;
-            height: 250px;
+            height: clamp(120px, 35vh, 250px); /* Garante que a imagem não esmague os botões em telas pequenas */
             object-fit: cover;
         }
 
         .modal-body {
             padding: 1.5rem;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .close-modal {
@@ -699,15 +705,27 @@
             z-index: 10;
         }
 
+        .modal-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            margin-top: 1rem;
+        }
+
         .modal-info h3 {
             font-size: 1.4rem;
             margin-bottom: 8px;
+            flex-shrink: 0;
         }
 
         .product-description {
             color: var(--text-muted);
             font-size: 0.95rem;
             margin-bottom: 1.5rem;
+            overflow-y: auto; /* Key: allow scroll */
+            flex: 1; /* Key: take available space */
+            padding-right: 8px; /* For scrollbar breathing room */
         }
 
         .product-actions {
@@ -715,6 +733,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-shrink: 0;
         }
 
         .quantity-selector {
@@ -763,6 +782,14 @@
             resize: none;
             font-family: inherit;
             margin-bottom: 1.5rem;
+        }
+
+        .observation-wrapper {
+            flex-shrink: 0;
+        }
+
+        .modal-actions-container {
+            flex-shrink: 0;
         }
 
         .btn-add-confirm {
