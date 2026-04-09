@@ -167,7 +167,7 @@ function renderMenu() {
     dom.menu.innerHTML = filtrados.map(p => {
         const esgotado = p.stock <= 0;
         return `
-        <article class="product-card${esgotado ? ' esgotado' : ''}">
+        <article class="product-card${esgotado ? ' esgotado' : ''}" ${esgotado ? '' : `onclick="abrirModal('${p.id}')"`}>
             <div class="product-img-wrap">
                 <img src="${p.img}" alt="${p.nome}" loading="lazy">
                 ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
@@ -176,7 +176,7 @@ function renderMenu() {
                 <h3 class="product-name">${p.nome}</h3>
                 <div class="product-footer">
                     <span class="product-price">${formatCurrency(p.preco)}</span>
-                    <button class="btn-add" onclick="abrirModal('${p.id}')" ${esgotado ? 'disabled' : ''}>
+                    <button class="btn-add" ${esgotado ? 'disabled' : ''}>
                         ${esgotado ? 'Esgotado' : 'Adicionar'}
                     </button>
                 </div>
