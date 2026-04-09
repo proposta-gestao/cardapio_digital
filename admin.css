@@ -166,7 +166,10 @@
             position: sticky;
             top: 57px;
             z-index: 90;
+            overflow: hidden;
+            scrollbar-width: none;
         }
+        .admin-tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
             padding: 14px 24px;

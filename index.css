@@ -173,6 +173,12 @@
             transform: translateY(-2px);
         }
 
+        .cart-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
         .cart-count {
             background: white;
             color: var(--primary);
@@ -189,30 +195,27 @@
         .categories-nav {
             display: flex;
             align-items: center;
-            padding: 0.8rem 1rem;
+            padding: 0.6rem 1rem;
             background: white;
             border-bottom: 1px solid var(--border-color);
             overflow-x: auto;
             scrollbar-width: none;
             gap: 1.5rem;
             position: sticky;
-            top: 115px;
-            /* Ajustado para Desktop */
+            top: 155px; /* header height desktop */
             z-index: 90;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         @media (max-width: 768px) {
-
-            /* No Mobile, como o banner some, o header fica menor */
             .categories-nav {
-                top: 105px;
+                top: 125px;
             }
         }
 
         @media (max-width: 480px) {
             .categories-nav {
-                top: 95px;
+                top: 110px;
             }
         }
 
@@ -282,13 +285,13 @@
             border-color: var(--primary);
         }
 
-        /* Wrapper da imagem do produto — sem espa\u00e7o vazio */
+        /* Wrapper da imagem do produto — tamanho fixo 120x120 em todos os cards */
         .product-img-wrap {
             position: relative;
             width: 120px;
             min-width: 120px;
+            height: 120px;
             flex-shrink: 0;
-            align-self: stretch;
             overflow: hidden;
         }
 
