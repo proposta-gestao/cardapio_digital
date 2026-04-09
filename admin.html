@@ -74,39 +74,44 @@
 
             <!-- Filtros de Busca -->
             <div class="dashboard-filters">
-                <div class="filters-grid">
-                    <div class="filter-group">
-                        <label for="filtroDataInicio">Data Início</label>
-                        <input type="date" id="filtroDataInicio">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filtroDataFim">Data Fim</label>
-                        <input type="date" id="filtroDataFim">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filtroCliente">Cliente</label>
-                        <input type="text" id="filtroCliente" placeholder="Buscar por nome...">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filtroValorMin">Valor Mín. (R$)</label>
-                        <input type="number" id="filtroValorMin" min="0" step="0.01" placeholder="0,00">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filtroValorMax">Valor Máx. (R$)</label>
-                        <input type="number" id="filtroValorMax" min="0" step="0.01" placeholder="">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filtroStatus">Status</label>
-                        <select id="filtroStatus">
-                            <option value="">Todos</option>
-                            <option value="pendente">Pendente</option>
-                            <option value="concluido">Concluído</option>
-                        </select>
-                    </div>
+                <div class="filters-header">
+                    <span class="filters-title">🔎 Filtrar Pedidos</span>
                 </div>
-                <div class="filters-actions">
-                    <button class="btn-primary" id="btnAplicarFiltros">🔍 Filtrar</button>
-                    <button class="btn-cancel" id="btnLimparFiltros" style="padding:10px 16px;font-size:0.85rem;">Limpar</button>
+                <div class="filters-body">
+                    <div class="filter-row">
+                        <div class="filter-group filter-group--date">
+                            <label for="filtroDataInicio">📅 Período</label>
+                            <div class="filter-date-range">
+                                <input type="date" id="filtroDataInicio" title="Data inicial">
+                                <span class="date-separator">até</span>
+                                <input type="date" id="filtroDataFim" title="Data final">
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filtroCliente">👤 Cliente</label>
+                            <input type="text" id="filtroCliente" placeholder="Buscar por nome...">
+                        </div>
+                        <div class="filter-group filter-group--range">
+                            <label>💰 Valor (R$)</label>
+                            <div class="filter-value-range">
+                                <input type="number" id="filtroValorMin" min="0" step="0.01" placeholder="Mín.">
+                                <span class="date-separator">—</span>
+                                <input type="number" id="filtroValorMax" min="0" step="0.01" placeholder="Máx.">
+                            </div>
+                        </div>
+                        <div class="filter-group filter-group--status">
+                            <label>🟡 Status</label>
+                            <select id="filtroStatus">
+                                <option value="">Todos os status</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="concluido">Concluído</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filters-actions">
+                        <button class="btn-cancel" id="btnLimparFiltros">✕ Limpar filtros</button>
+                        <button class="btn-primary" id="btnAplicarFiltros">🔍 Aplicar Filtros</button>
+                    </div>
                 </div>
             </div>
 
@@ -144,17 +149,20 @@
                 <ul class="stock-alert-list" id="stockAlertList"></ul>
             </div>
 
-            <!-- Toolbar with sub-tabs + action button centered -->
+            <!-- Sub-tabs centered -->
             <div class="produtos-toolbar">
                 <div class="admin-subtabs">
                     <button class="subtab-btn active" data-subtab="lista-produtos">Gerenciar Produtos</button>
                     <button class="subtab-btn" data-subtab="lista-categorias">Gerenciar Categorias</button>
                 </div>
-                <button class="btn-primary" id="btnNovoProduto">+ Novo Produto</button>
             </div>
 
             <!-- Subtab: Gerenciar Produtos -->
             <div class="subtab-content active" id="subtab-lista-produtos">
+                <div class="admin-toolbar">
+                    <h2>Produtos</h2>
+                    <button class="btn-primary" id="btnNovoProduto">+ Novo Produto</button>
+                </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
                         <thead>
@@ -175,7 +183,7 @@
 
             <!-- Subtab: Gerenciar Categorias -->
             <div class="subtab-content" id="subtab-lista-categorias">
-                <div class="admin-toolbar" style="margin-top:1rem;">
+                <div class="admin-toolbar">
                     <h2>Categorias</h2>
                     <button class="btn-primary" id="btnNovaCategoria">+ Nova Categoria</button>
                 </div>
