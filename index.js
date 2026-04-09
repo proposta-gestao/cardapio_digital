@@ -143,6 +143,13 @@ function renderMenu() {
         return matchBusca && matchCat;
     });
 
+    // Ordena: disponíveis primeiro, esgotados no final
+    filtrados.sort((a, b) => {
+        const aEsg = a.stock <= 0 ? 1 : 0;
+        const bEsg = b.stock <= 0 ? 1 : 0;
+        return aEsg - bEsg;
+    });
+
     if (filtrados.length === 0) {
         dom.menu.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Nenhum produto encontrado.</p>';
         return;
@@ -152,7 +159,7 @@ function renderMenu() {
         const esgotado = p.stock <= 0;
         return `
         <article class="product-card${esgotado ? ' esgotado' : ''}">
-            <div style="position:relative;">
+            <div class="product-img-wrap">
                 <img src="${p.img}" alt="${p.nome}" loading="lazy">
                 ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
             </div>
@@ -313,10 +320,30 @@ function calcularFrete(bairro) {
 function renderTotalBreakdown() {
     const subtotal = state.carrinho.reduce((acc, p) => acc + (p.preco * p.qnt), 0);
     const desconto = subtotal * state.descontoAtivo;
+    const subtotalFinal = subtotal - desconto;
+
+    const fmt = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+    // --- Etapa 1: breakdown do cupom ---
+    const couponBreakdown = document.getElementById('couponBreakdown');
+    const cbTotal = document.getElementById('cbTotal');
+    const cbDesconto = document.getElementById('cbDesconto');
+    const cbSubfinal = document.getElementById('cbSubfinal');
+
+    if (couponBreakdown) {
+        if (desconto > 0) {
+            couponBreakdown.style.display = 'block';
+            if (cbTotal)    cbTotal.textContent    = fmt(subtotal);
+            if (cbDesconto) cbDesconto.textContent = `- ${fmt(desconto)}`;
+            if (cbSubfinal) cbSubfinal.textContent = fmt(subtotalFinal);
+        } else {
+            couponBreakdown.style.display = 'none';
+        }
+    }
 
     // Atualiza subtotal da etapa 1 (com desconto aplicado)
     if (dom.total) {
-        dom.total.innerText = (subtotal * (1 - state.descontoAtivo))
+        dom.total.innerText = subtotalFinal
             .toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     }
 
@@ -330,14 +357,12 @@ function renderTotalBreakdown() {
     };
     if (!els.sub) return; // etapa 2 não visível ainda
 
-    const fmt = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
     els.sub.textContent = fmt(subtotal);
 
     // Linha de desconto
     if (desconto > 0) {
         els.desc.textContent = `- ${fmt(desconto)}`;
-        els.desc.style.color = 'var(--success)';
+        els.desc.style.color = '#00B894';
         els.descRow.style.display = 'flex';
     } else {
         els.descRow.style.display = 'none';
@@ -352,7 +377,7 @@ function renderTotalBreakdown() {
             els.frete.style.color = 'var(--text-muted)';
         } else if (state.freteAtivo === 0) {
             els.frete.textContent = 'Grátis';
-            els.frete.style.color = 'var(--success)';
+            els.frete.style.color = '#00B894';
             freteValorFinal = 0;
         } else {
             freteValorFinal = state.freteAtivo;
@@ -360,7 +385,7 @@ function renderTotalBreakdown() {
             els.frete.style.color = 'var(--text-main)';
         }
     } else {
-        // Retirada — não exibe linha de frete (conforme solicitado)
+        // Retirada — não exibe linha de frete
         els.freteRow.style.display = 'none';
         freteValorFinal = 0;
     }
@@ -572,19 +597,28 @@ document.getElementById("btnCupom").onclick = async () => {
     if (cupom) {
         state.descontoAtivo = parseFloat(cupom.discount_percent) / 100;
         state.cupomAplicado = codigo;
-        alert(`✅ Cupom ${codigo} aplicado! ${cupom.discount_percent}% de desconto.`);
+        mostrarToast(`🎉 Cupom "${codigo}" aplicado! ${cupom.discount_percent}% de desconto.`, 'success');
         renderCarrinho();
     } else {
-        alert("❌ Cupom inválido ou expirado.");
+        mostrarToast('❌ Cupom inválido ou expirado. Tente outro!', 'error');
     }
 };
 
 // CEP — debounced autocomplete
 document.getElementById("cep").oninput = onCepInput;
 
-// Tipo de Entrega — radio buttons
+// Tipo de Entrega — radio buttons + click nos labels
 document.querySelectorAll('input[name="tipoEntrega"]').forEach(radio => {
     radio.onchange = () => toggleTipoEntrega(radio.value);
+});
+document.querySelectorAll('.delivery-radio-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+            toggleTipoEntrega(radio.value);
+        }
+    });
 });
 
 // Wizard — Navegação
@@ -594,6 +628,19 @@ document.getElementById("btnProximaEtapa").onclick = () => {
 };
 
 document.getElementById("btnVoltarEtapa").onclick = () => navegarStep(1);
+
+// Limitar telefone a 11 dígitos numéricos
+const telInput = document.getElementById('clienteTelefone');
+if (telInput) {
+    telInput.addEventListener('input', () => {
+        let digits = telInput.value.replace(/\D/g, '').slice(0, 11);
+        // Formata: (XX) XXXXX-XXXX
+        let formatted = digits;
+        if (digits.length > 2)  formatted = `(${digits.slice(0,2)}) ${digits.slice(2)}`;
+        if (digits.length > 7)  formatted = `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
+        telInput.value = formatted;
+    });
+}
 
 // Enviar Pedido via WhatsApp
 document.getElementById("btnEnviar").onclick = async () => {
@@ -749,20 +796,60 @@ document.getElementById("btnEnviar").onclick = async () => {
 
         window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
 
-        // Limpar carrinho e fechar para evitar re-clique (evita múltiplas reduções de estoque acidentais)
+        // Limpar carrinho e fechar
         state.carrinho = [];
+        state.descontoAtivo = 0;
+        state.cupomAplicado = null;
         renderCarrinho();
         toggleCart(false);
-        carregarProdutos(); // Atualiza painel para espelhar estoque real localmente
+        carregarProdutos();
+        mostrarConfirmacaoPedido(nomeCliente);
 
     } catch (err) {
         console.error("Erro ao processar pedido:", err);
-        alert("Houve um problema ao registrar o pedido. Se persistir, contate: " + CONFIG.telefone);
+        mostrarToast('Houve um problema ao registrar o pedido. Tente novamente!', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = `<span>Enviar Pedido via WhatsApp</span><span class="wa-icon">📱</span>`;
     }
 };
+
+// =============================================
+// TOAST & CONFIRMAÇÃO
+// =============================================
+
+function mostrarToast(msg, tipo = 'success') {
+    const existing = document.getElementById('toastMsg');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'toastMsg';
+    toast.className = `toast-msg toast-${tipo}`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('toast-visible'));
+    setTimeout(() => {
+        toast.classList.remove('toast-visible');
+        setTimeout(() => toast.remove(), 400);
+    }, 3500);
+}
+
+function mostrarConfirmacaoPedido(nome) {
+    const overlay = document.createElement('div');
+    overlay.id = 'orderConfirmOverlay';
+    overlay.innerHTML = `
+        <div class="order-confirm-box">
+            <div class="order-confirm-emoji">🍽️</div>
+            <h2 class="order-confirm-title">Pedido Enviado!</h2>
+            <p class="order-confirm-sub">Ebaaa, ${nome}! Seu pedido foi registrado com sucesso 🎉</p>
+            <p class="order-confirm-detail">Em breve você receberá uma confirmação pelo WhatsApp. <br>Prepara o prato porque vem coisa boa aí! 😋</p>
+            <button class="order-confirm-btn" onclick="document.getElementById('orderConfirmOverlay').remove()">Maravilha! 🤩</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('order-confirm-visible'));
+}
 
 // UI Controls
 const toggleCart = (show) => {

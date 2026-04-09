@@ -134,6 +134,21 @@
                     <input type="text" id="cupom" placeholder="Tem um cupom?">
                     <button id="btnCupom">Aplicar</button>
                 </div>
+                <!-- Breakdown do cupom (visível após aplicar) -->
+                <div id="couponBreakdown" class="coupon-breakdown" style="display:none;">
+                    <div class="cb-row">
+                        <span>Total da compra</span>
+                        <span id="cbTotal"></span>
+                    </div>
+                    <div class="cb-row cb-desc">
+                        <span>🎟️ Desconto do cupom</span>
+                        <span id="cbDesconto"></span>
+                    </div>
+                    <div class="cb-row cb-final">
+                        <span>Subtotal final</span>
+                        <strong id="cbSubfinal"></strong>
+                    </div>
+                </div>
                 <div class="subtotal-line">
                     <span>Subtotal</span>
                     <span class="subtotal-value">R$ <span id="total">0,00</span></span>
@@ -158,7 +173,7 @@
                     </div>
                     <div class="form-group">
                         <label for="clienteTelefone">Telefone / WhatsApp *</label>
-                        <input type="tel" id="clienteTelefone" placeholder="(31) 99999-9999">
+                        <input type="tel" id="clienteTelefone" placeholder="(31) 99999-9999" maxlength="15">
                     </div>
                 </div>
 
