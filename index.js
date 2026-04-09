@@ -817,7 +817,7 @@ document.getElementById("btnEnviar").onclick = async () => {
 
         msg += `*🛒 Itens:*%0A`;
         state.carrinho.forEach(p => {
-            msg += `✅ *${p.qnt}x ${p.nome}* — ${fmtBRL(p.preco * p.qnt)}%0A`;
+            msg += `✅ *${p.qnt}x ${p.nome}* — ${fmtW(p.preco * p.qnt)}%0A`;
             if (p.obs) msg += `_Obs: ${p.obs}_%0A`;
         });
         msg += `%0A`;
