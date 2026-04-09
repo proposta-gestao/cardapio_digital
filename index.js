@@ -720,18 +720,41 @@ document.getElementById("btnEnviar").onclick = async () => {
         const desconto = subtotal * state.descontoAtivo;
         const totalFinal = subtotal - desconto + freteValor;
 
-        // 1. Salvar cliente na tabela clientes (fire and forget)
-        const clientePayload = {
-            nome: nomeCliente,
-            celular: telefoneCliente,
-            cep: camposEndereco?.cep || null,
-            endereco: camposEndereco
-                ? `${camposEndereco.logradouro}, ${camposEndereco.numero}${camposEndereco.complemento ? ', ' + camposEndereco.complemento : ''} — ${camposEndereco.bairro}, ${camposEndereco.cidade}/${camposEndereco.estado}`
-                : null
-        };
-        sb.from('clientes').insert(clientePayload).then(({ error }) => {
-            if (error) console.warn('Aviso: não foi possível salvar cliente:', error.message);
-        });
+        // 1. Salvar/Atualizar cliente na tabela clientes (upsert por celular)
+        (async () => {
+            try {
+                const celularLimpo = telefoneCliente.replace(/\D/g, '');
+                const enderecoStr = camposEndereco
+                    ? `${camposEndereco.logradouro}, ${camposEndereco.numero}${camposEndereco.complemento ? ', ' + camposEndereco.complemento : ''} — ${camposEndereco.bairro}, ${camposEndereco.cidade}/${camposEndereco.estado}`
+                    : null;
+
+                const { data: existente } = await sb
+                    .from('clientes')
+                    .select('id')
+                    .eq('celular', celularLimpo)
+                    .maybeSingle();
+
+                if (existente) {
+                    // Cliente já existe: atualiza nome e endereço se informado
+                    const updates = { nome: nomeCliente };
+                    if (enderecoStr) {
+                        updates.cep = camposEndereco.cep;
+                        updates.endereco = enderecoStr;
+                    }
+                    await sb.from('clientes').update(updates).eq('id', existente.id);
+                } else {
+                    // Novo cliente: insere
+                    await sb.from('clientes').insert({
+                        nome: nomeCliente,
+                        celular: celularLimpo,
+                        cep: camposEndereco?.cep || null,
+                        endereco: enderecoStr
+                    });
+                }
+            } catch (e) {
+                console.warn('Aviso: não foi possível salvar cliente:', e.message);
+            }
+        })();
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
