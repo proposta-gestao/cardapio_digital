@@ -11,6 +11,15 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // --- Configurações ---
 const CONFIG = { telefone: "5531975540280" };
 
+// --- Utils ---
+function formatNumber(val) {
+    return (parseFloat(val) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatCurrency(val) {
+    return (parseFloat(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 // --- Dados dinâmicos (Supabase) ---
 let PRODUTOS = [];
 let CATEGORIAS = [];
@@ -166,7 +175,7 @@ function renderMenu() {
             <div class="product-info">
                 <h3 class="product-name">${p.nome}</h3>
                 <div class="product-footer">
-                    <span class="product-price">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
+                    <span class="product-price">${formatCurrency(p.preco)}</span>
                     <button class="btn-add" onclick="abrirModal('${p.id}')" ${esgotado ? 'disabled' : ''}>
                         ${esgotado ? 'Esgotado' : 'Adicionar'}
                     </button>
@@ -183,7 +192,7 @@ function renderCarrinho() {
     if (state.carrinho.length === 0) {
         dom.cartItems.innerHTML = '<div class="empty-cart-msg">Seu carrinho está vazio.</div>';
         dom.contador.innerText = "0";
-        if (dom.total) dom.total.innerText = "0,00";
+        if (dom.total) dom.total.innerText = "0,00"; // keep this as just value if the UI expects it without label
         if (btnProx) btnProx.disabled = true;
         renderTotalBreakdown();
         return;
@@ -198,7 +207,7 @@ function renderCarrinho() {
                 <div class="cart-item-info">
                     <h4>${item.qnt}x ${item.nome}</h4>
                     <p>${item.obs ? `Obs: ${item.obs}` : ''}</p>
-                    <strong>R$ ${itemTotal.toFixed(2).replace('.', ',')}</strong>
+                    <strong>${formatCurrency(itemTotal)}</strong>
                 </div>
                 <div class="cart-item-actions">
                     <button class="btn-remove" onclick="removerDoCarrinho(${index})" aria-label="Remover item">🗑️</button>
@@ -208,7 +217,7 @@ function renderCarrinho() {
     }).join('');
 
     const totalFinal = subtotal * (1 - state.descontoAtivo);
-    if (dom.total) dom.total.innerText = totalFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    if (dom.total) dom.total.innerText = formatNumber(totalFinal);
     dom.contador.innerText = state.carrinho.reduce((acc, curr) => acc + curr.qnt, 0);
     if (btnProx) btnProx.disabled = false;
     renderTotalBreakdown();
@@ -322,7 +331,8 @@ function renderTotalBreakdown() {
     const desconto = subtotal * state.descontoAtivo;
     const subtotalFinal = subtotal - desconto;
 
-    const fmt = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const fmt = (v) => formatCurrency(v);
+    const fmtNum = (v) => formatNumber(v);
 
     // --- Etapa 1: breakdown do cupom ---
     const couponBreakdown = document.getElementById('couponBreakdown');
@@ -343,8 +353,7 @@ function renderTotalBreakdown() {
 
     // Atualiza subtotal da etapa 1 (com desconto aplicado)
     if (dom.total) {
-        dom.total.innerText = subtotalFinal
-            .toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        dom.total.innerText = fmtNum(subtotalFinal);
     }
 
     const els = {
@@ -481,7 +490,7 @@ async function buscarCepAuto() {
                     freteInfoText.textContent = `✅ Entrega grátis para ${data.bairro}!`;
                 } else {
                     freteInfo.className = 'frete-info frete-ok';
-                    freteInfoText.textContent = `🚗 Frete para ${data.bairro}: R$ ${frete.toFixed(2).replace('.', ',')}`;
+                    freteInfoText.textContent = `🚗 Frete para ${data.bairro}: ${formatCurrency(frete)}`;
                 }
             }
         }
@@ -507,7 +516,7 @@ window.abrirModal = (id) => {
     dom.pImg.src = produto.img;
     dom.pNome.innerText = produto.nome;
     dom.pDesc.innerText = produto.desc;
-    dom.pPreco.innerText = produto.preco.toFixed(2).replace('.', ',');
+    dom.pPreco.innerText = formatNumber(produto.preco);
     dom.qntText.innerText = state.quantidadeAtual;
     atualizarSubtotalModal();
     
@@ -521,7 +530,7 @@ window.abrirModal = (id) => {
 function atualizarSubtotalModal() {
     if (!state.produtoSelecionado) return;
     const sub = state.produtoSelecionado.preco * state.quantidadeAtual;
-    document.getElementById('psubtotal').innerText = sub.toFixed(2).replace('.', ',');
+    document.getElementById('psubtotal').innerText = formatNumber(sub);
 }
 
 function toggleModal(show) {
@@ -767,7 +776,7 @@ document.getElementById("btnEnviar").onclick = async () => {
         // Observação: a lógica do estoque agora roda atomicamente via banco de dados usando um Trigger (Postgres).
 
         // 4. Montar mensagem WhatsApp
-        const fmtBRL = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+        const fmtW = (v) => formatCurrency(v);
         let msg = `*📦 NOVO PEDIDO — Estela Panelas*%0A%0A`;
         msg += `*👤 Cliente:* ${nomeCliente}%0A`;
         msg += `*📱 Telefone:* ${telefoneCliente}%0A%0A`;
@@ -789,10 +798,10 @@ document.getElementById("btnEnviar").onclick = async () => {
             if (p.obs) msg += `_Obs: ${p.obs}_%0A`;
         });
         msg += `%0A`;
-        msg += `*💵 Subtotal:* ${fmtBRL(subtotal)}%0A`;
-        if (desconto > 0) msg += `*🎟️ Desconto (${state.cupomAplicado}):* -${fmtBRL(desconto)}%0A`;
-        if (tipoEntrega === 'entrega') msg += `*🚚 Frete:* ${freteValor === 0 ? 'Grátis' : fmtBRL(freteValor)}%0A`;
-        msg += `*💰 TOTAL: ${fmtBRL(totalFinal)}*`;
+        msg += `*💵 Subtotal:* ${fmtW(subtotal)}%0A`;
+        if (desconto > 0) msg += `*🎟️ Desconto (${state.cupomAplicado}):* -${fmtW(desconto)}%0A`;
+        if (tipoEntrega === 'entrega') msg += `*🚚 Frete:* ${freteValor === 0 ? 'Grátis' : fmtW(freteValor)}%0A`;
+        msg += `*💰 TOTAL: ${fmtW(totalFinal)}*`;
 
         window.open(`https://wa.me/${CONFIG.telefone}?text=${msg}`);
 

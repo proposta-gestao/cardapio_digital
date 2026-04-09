@@ -13,6 +13,25 @@
         let imagensGaleria = [];
         let zonasFrete = [];
 
+        // --- Filtros de pedidos ---
+        let filtrosPedidos = {
+            dataInicio: '',
+            dataFim: '',
+            cliente: '',
+            valorMin: '',
+            valorMax: '',
+            status: ''
+        };
+
+        // --- Utils ---
+        function formatNumber(val) {
+            return (parseFloat(val) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatCurrency(val) {
+            return (parseFloat(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
         // --- DOM ---
         const $toast = document.getElementById('toast');
 
@@ -119,12 +138,24 @@
         }
 
         // --- Tabs ---
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => switchTab(btn.dataset.tab, btn);
+        });
+
+        // Sub-tabs handling (inside Produtos)
+        document.querySelectorAll('.subtab-btn').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.subtab-content').forEach(c => c.classList.remove('active'));
                 btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+                document.getElementById('subtab-' + btn.dataset.subtab).classList.add('active');
             };
         });
 
@@ -158,26 +189,75 @@
                 }
             });
             
-            document.getElementById('dashTotalValue').innerText = `R$ ${totalFaturado.toFixed(2)}`;
+            document.getElementById('dashTotalValue').innerText = "R$ " + formatNumber(totalFaturado);
             document.getElementById('dashTotalOrders').innerText = pedidos.length;
             document.getElementById('dashTotalItems').innerText = totalItens;
             
+            renderPedidosFiltrados();
+        }
+
+        function renderPedidosFiltrados() {
             const tbody = document.getElementById('pedidosBody');
-            if (pedidos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum pedido encontrado.</td></tr>';
+            const contador = document.getElementById('filtroContador');
+
+            let filtrados = pedidos.filter(p => {
+                const criado = new Date(p.created_at);
+
+                if (filtrosPedidos.dataInicio) {
+                    const inicio = new Date(filtrosPedidos.dataInicio + 'T00:00:00');
+                    if (criado < inicio) return false;
+                }
+                if (filtrosPedidos.dataFim) {
+                    const fim = new Date(filtrosPedidos.dataFim + 'T23:59:59');
+                    if (criado > fim) return false;
+                }
+                if (filtrosPedidos.cliente) {
+                    const nome = (p.customer_name || '').toLowerCase();
+                    if (!nome.includes(filtrosPedidos.cliente.toLowerCase())) return false;
+                }
+                if (filtrosPedidos.valorMin !== '' && filtrosPedidos.valorMin !== null) {
+                    if (parseFloat(p.total) < parseFloat(filtrosPedidos.valorMin)) return false;
+                }
+                if (filtrosPedidos.valorMax !== '' && filtrosPedidos.valorMax !== null) {
+                    if (parseFloat(p.total) > parseFloat(filtrosPedidos.valorMax)) return false;
+                }
+                if (filtrosPedidos.status) {
+                    if (p.status !== filtrosPedidos.status) return false;
+                }
+                return true;
+            });
+
+            const total = filtrados.length;
+            if (contador) {
+                contador.textContent = total === pedidos.length
+                    ? `(${total} pedidos)`
+                    : `(${total} de ${pedidos.length} pedidos)`;
+            }
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum pedido encontrado com os filtros selecionados.</td></tr>';
                 return;
             }
             
-            tbody.innerHTML = pedidos.map(p => {
+            tbody.innerHTML = filtrados.map(p => {
                 const dataPedido = new Date(p.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
                 const qtdItens = p.order_items ? p.order_items.reduce((acc, curr) => acc + curr.quantity, 0) : 0;
+                const isPendente = p.status === 'pendente';
+                const badgeClass = isPendente ? 'badge-inactive' : 'badge-active';
+                const statusLabel = p.status === 'concluido' ? 'Concluído' : p.status?.charAt(0).toUpperCase() + p.status?.slice(1);
                 return `
-                    <tr>
+                    <tr id="pedido-row-${p.id}">
                         <td>${dataPedido}</td>
                         <td><strong>${p.customer_name || 'Desconhecido'}</strong></td>
-                        <td><span class="badge ${p.status === 'pendente' ? 'badge-inactive' : 'badge-active'}" style="text-transform: capitalize;">${p.status}</span></td>
+                        <td><span class="badge ${badgeClass}" style="text-transform:capitalize;">${statusLabel}</span></td>
                         <td>${qtdItens} un.</td>
-                        <td><strong>R$ ${parseFloat(p.total).toFixed(2)}</strong></td>
+                        <td><strong>${formatCurrency(p.total)}</strong></td>
+                        <td>
+                            ${isPendente
+                                ? `<button class="btn-sm btn-finalizar" onclick="finalizarPedido('${p.id}')">✅ Finalizar</button>`
+                                : '<span style="font-size:0.8rem;color:var(--text-muted);">—</span>'
+                            }
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -288,7 +368,7 @@
                     <td><img src="${p.image_url || 'Logo.png'}" alt="Img" style="width:40px;height:40px;object-fit:cover;border-radius:6px;"></td>
                     <td><strong>${p.name}</strong></td>
                     <td>${p.categories?.name || '-'}</td>
-                    <td>R$ ${parseFloat(p.price).toFixed(2)}</td>
+                    <td>${formatCurrency(p.price)}</td>
                     <td style="color:${stockColor}; font-weight: ${stockColor !== 'inherit' ? '700' : 'normal'}">${p.stock}</td>
                     <td>${toggleHTML}</td>
                     <td>
@@ -755,6 +835,45 @@
             if (e.key === 'Enter') document.getElementById('btnLogin').click();
         };
 
+        // --- Filtros de Pedidos ---
+        document.getElementById('btnAplicarFiltros').onclick = () => {
+            filtrosPedidos = {
+                dataInicio: document.getElementById('filtroDataInicio').value,
+                dataFim: document.getElementById('filtroDataFim').value,
+                cliente: document.getElementById('filtroCliente').value.trim(),
+                valorMin: document.getElementById('filtroValorMin').value,
+                valorMax: document.getElementById('filtroValorMax').value,
+                status: document.getElementById('filtroStatus').value
+            };
+            renderPedidosFiltrados();
+        };
+
+        document.getElementById('btnLimparFiltros').onclick = () => {
+            filtrosPedidos = { dataInicio: '', dataFim: '', cliente: '', valorMin: '', valorMax: '', status: '' };
+            document.getElementById('filtroDataInicio').value = '';
+            document.getElementById('filtroDataFim').value = '';
+            document.getElementById('filtroCliente').value = '';
+            document.getElementById('filtroValorMin').value = '';
+            document.getElementById('filtroValorMax').value = '';
+            document.getElementById('filtroStatus').value = '';
+            renderPedidosFiltrados();
+        };
+
+        // --- Finalizar Pedido ---
+        window.finalizarPedido = async (id) => {
+            if (!confirm('Deseja marcar este pedido como Concluído?')) return;
+            const { error } = await sb.from('orders').update({ status: 'concluido' }).eq('id', id);
+            if (error) {
+                showToast('Erro ao finalizar pedido: ' + error.message, 'error');
+                return;
+            }
+            // Atualiza o pedido na memória
+            const idx = pedidos.findIndex(p => p.id === id);
+            if (idx !== -1) pedidos[idx].status = 'concluido';
+            renderPedidosFiltrados();
+            showToast('Pedido finalizado com sucesso!', 'success');
+        };
+
         // =================== CONFIGURAÇÕES ===================
 
         async function carregarConfiguracoes() {
@@ -848,7 +967,7 @@
                 <tr>
                     <td><strong>${z.name}</strong></td>
                     <td style="max-width:220px;white-space:normal;font-size:0.82rem;color:var(--text-muted);">${z.neighborhoods}</td>
-                    <td><strong>R$ ${parseFloat(z.delivery_fee).toFixed(2)}</strong></td>
+                    <td><strong>${formatCurrency(z.delivery_fee)}</strong></td>
                     <td><span class="badge ${z.active ? 'badge-active' : 'badge-inactive'}">${z.active ? 'Ativo' : 'Inativo'}</span></td>
                     <td>
                         <div class="actions-cell">

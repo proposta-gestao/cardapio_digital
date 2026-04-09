@@ -47,7 +47,6 @@
         <nav class="admin-tabs">
             <button class="tab-btn active" data-tab="produtos">Produtos</button>
             <button class="tab-btn" data-tab="dashboard">Vendas & Performance</button>
-            <button class="tab-btn" data-tab="categorias">Categorias</button>
             <button class="tab-btn" data-tab="cupons">Cupons</button>
             <button class="tab-btn" data-tab="configuracoes">⚙️ Configurações</button>
         </nav>
@@ -73,8 +72,46 @@
                 </div>
             </div>
 
-            <div class="admin-toolbar" style="margin-top: 2rem;">
-                <h2>Últimos Pedidos</h2>
+            <!-- Filtros de Busca -->
+            <div class="dashboard-filters">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="filtroDataInicio">Data Início</label>
+                        <input type="date" id="filtroDataInicio">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filtroDataFim">Data Fim</label>
+                        <input type="date" id="filtroDataFim">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filtroCliente">Cliente</label>
+                        <input type="text" id="filtroCliente" placeholder="Buscar por nome...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filtroValorMin">Valor Mín. (R$)</label>
+                        <input type="number" id="filtroValorMin" min="0" step="0.01" placeholder="0,00">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filtroValorMax">Valor Máx. (R$)</label>
+                        <input type="number" id="filtroValorMax" min="0" step="0.01" placeholder="">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filtroStatus">Status</label>
+                        <select id="filtroStatus">
+                            <option value="">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="concluido">Concluído</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-actions">
+                    <button class="btn-primary" id="btnAplicarFiltros">🔍 Filtrar</button>
+                    <button class="btn-cancel" id="btnLimparFiltros" style="padding:10px 16px;font-size:0.85rem;">Limpar</button>
+                </div>
+            </div>
+
+            <div class="admin-toolbar" style="margin-top: 1.5rem;">
+                <h2>Pedidos <span id="filtroContador" style="font-size:0.85rem;color:var(--text-muted);font-weight:400;"></span></h2>
             </div>
             <div class="admin-table-wrapper">
                 <table class="admin-table">
@@ -85,65 +122,76 @@
                             <th>Status</th>
                             <th>Itens</th>
                             <th>Total</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="pedidosBody">
-                        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum pedido encontrado.</td></tr>
+                        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum pedido encontrado.</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Products Tab -->
+        <!-- Products & Categories Tab -->
         <div class="tab-content active" id="tab-produtos">
+
+            <!-- Stats row -->
             <div class="stats-row" id="statsRow"></div>
-            
+
             <!-- Painel de Alerta de Baixo Estoque -->
             <div class="stock-alert-panel" id="stockAlertPanel">
                 <h3>⚠️ Alerta de Baixo Estoque</h3>
                 <ul class="stock-alert-list" id="stockAlertList"></ul>
             </div>
 
-            <div class="admin-toolbar">
-                <h2>Produtos</h2>
+            <!-- Toolbar with sub-tabs + action button centered -->
+            <div class="produtos-toolbar">
+                <div class="admin-subtabs">
+                    <button class="subtab-btn active" data-subtab="lista-produtos">Gerenciar Produtos</button>
+                    <button class="subtab-btn" data-subtab="lista-categorias">Gerenciar Categorias</button>
+                </div>
                 <button class="btn-primary" id="btnNovoProduto">+ Novo Produto</button>
             </div>
-            <div class="admin-table-wrapper">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Imagem</th>
-                            <th>Nome</th>
-                            <th>Categoria</th>
-                            <th>Preço</th>
-                            <th>Estoque</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="produtosBody"></tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Categories Tab -->
-        <div class="tab-content" id="tab-categorias">
-            <div class="admin-toolbar">
-                <h2>Categorias</h2>
-                <button class="btn-primary" id="btnNovaCategoria">+ Nova Categoria</button>
+            <!-- Subtab: Gerenciar Produtos -->
+            <div class="subtab-content active" id="subtab-lista-produtos">
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagem</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Preço</th>
+                                <th>Estoque</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="produtosBody"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="admin-table-wrapper">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Slug</th>
-                            <th>Ordem</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categoriasBody"></tbody>
-                </table>
+
+            <!-- Subtab: Gerenciar Categorias -->
+            <div class="subtab-content" id="subtab-lista-categorias">
+                <div class="admin-toolbar" style="margin-top:1rem;">
+                    <h2>Categorias</h2>
+                    <button class="btn-primary" id="btnNovaCategoria">+ Nova Categoria</button>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Slug</th>
+                                <th>Ordem</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriasBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
