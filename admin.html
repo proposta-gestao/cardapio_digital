@@ -36,20 +36,24 @@
 
     <!-- Admin Layout -->
     <div class="admin-layout" id="adminLayout">
-        <header class="admin-header">
-            <h1>🍲 Estela Panelas <span style="font-weight:400;color:var(--text-muted);font-size:0.85rem;">Admin</span></h1>
-            <div class="admin-header-actions">
-                <a href="index.html" class="btn-link-cardapio" target="_blank">Ver Cardápio ↗</a>
-                <button class="btn-logout" id="btnLogout">Sair</button>
-            </div>
-        </header>
+        <div class="admin-topbar">
+            <header class="admin-header">
+                <h1>🍲 Estela Panelas <span style="font-weight:400;color:var(--text-muted);font-size:0.85rem;">Admin</span></h1>
+                <div class="admin-header-actions">
+                    <a href="index.html" class="btn-link-cardapio" target="_blank">Ver Cardápio ↗</a>
+                    <button class="btn-logout" id="btnLogout">Sair</button>
+                </div>
+            </header>
 
-        <nav class="admin-tabs">
-            <button class="tab-btn active" data-tab="produtos">Produtos</button>
-            <button class="tab-btn" data-tab="dashboard">Vendas & Performance</button>
-            <button class="tab-btn" data-tab="cupons">Cupons</button>
-            <button class="tab-btn" data-tab="configuracoes">⚙️ Configurações</button>
-        </nav>
+            <nav class="admin-tabs">
+                <button class="tab-btn active" data-tab="produtos">Produtos</button>
+                <button class="tab-btn" data-tab="dashboard">Vendas & Performance</button>
+                <button class="tab-btn" data-tab="cupons">Cupons</button>
+                <button class="tab-btn" data-tab="configuracoes">⚙️ Configurações</button>
+            </nav>
+        </div>
+
+        <div class="admin-content-wrapper">
 
         <!-- Dashboard Tab -->
         <div class="tab-content" id="tab-dashboard">
@@ -223,7 +227,6 @@
                 </table>
             </div>
         </div>
-    </div>
 
         <!-- Configurações Tab -->
         <div class="tab-content" id="tab-configuracoes">
@@ -307,6 +310,9 @@
                 </div>
             </div>
         </div>
+
+        </div> <!-- Fechamento da admin-content-wrapper -->
+    </div> <!-- Fechamento da admin-layout -->
 
     <!-- Product Modal -->
     <div class="admin-modal-backdrop" id="modalProduto">
