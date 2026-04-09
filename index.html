@@ -57,11 +57,14 @@
 
 <body>
 
-    <!-- Header & Hero Section -->
-    <header class="header">
-        <div class="banner-desktop" role="img" aria-label="Banner Estela Panelas"></div>
-        <div class="top-nav">
-            <div class="brand-container">
+    <!-- Hero Banner -->
+    <div class="banner-desktop" role="img" aria-label="Banner Estela Panelas"></div>
+
+    <!-- Sticky Store Header (Logo, Search, Categories) -->
+    <div class="sticky-store-topbar">
+        <header class="header">
+            <div class="top-nav">
+                <div class="brand-container">
                 <img src="Logo.png" alt="Estela Panelas Logo" class="logo-main">
 
                 <div class="brand-text">
@@ -82,10 +85,8 @@
                 <span class="search-icon">🔍</span>
                 <input type="text" id="busca" placeholder="O que você deseja comer hoje?" aria-label="Buscar pratos">
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="main-content">
         <!-- Categories Navigation -->
         <nav class="categories-nav" aria-label="Categorias de produtos">
             <div class="categories-list" id="categoriesList">
@@ -93,7 +94,9 @@
                 <!-- Categorias dinâmicas via Supabase -->
             </div>
         </nav>
+    </div>
 
+    <main class="main-content">
         <!-- Menu Grid -->
         <section class="menu-section">
             <h1 class="section-title">Nosso Cardápio</h1>
