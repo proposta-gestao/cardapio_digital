@@ -46,6 +46,7 @@ const dom = {
     cart: document.getElementById("cart"),
     cartItems: document.getElementById("cartItems"),
     contador: document.getElementById("contador"),
+    contadorMobile: document.getElementById("contadorMobile"),
     total: document.getElementById("total"),
     popup: document.getElementById("popup"),
     backdrop: document.getElementById("backdrop"),
@@ -174,6 +175,7 @@ function renderMenu() {
             </div>
             <div class="product-info">
                 <h3 class="product-name">${p.nome}</h3>
+                <p class="product-short-desc">${p.desc}</p>
                 <div class="product-footer">
                     <span class="product-price">${formatCurrency(p.preco)}</span>
                     <button class="btn-add" ${esgotado ? 'disabled' : ''}>
@@ -192,6 +194,7 @@ function renderCarrinho() {
     if (state.carrinho.length === 0) {
         dom.cartItems.innerHTML = '<div class="empty-cart-msg">Seu carrinho está vazio.</div>';
         dom.contador.innerText = "0";
+        if (dom.contadorMobile) dom.contadorMobile.innerText = "0";
         if (dom.total) dom.total.innerText = "0,00"; // keep this as just value if the UI expects it without label
         if (btnProx) btnProx.disabled = true;
         renderTotalBreakdown();
@@ -218,7 +221,9 @@ function renderCarrinho() {
 
     const totalFinal = subtotal * (1 - state.descontoAtivo);
     if (dom.total) dom.total.innerText = formatNumber(totalFinal);
-    dom.contador.innerText = state.carrinho.reduce((acc, curr) => acc + curr.qnt, 0);
+    const qtdeItens = state.carrinho.reduce((acc, curr) => acc + curr.qnt, 0);
+    dom.contador.innerText = qtdeItens;
+    if (dom.contadorMobile) dom.contadorMobile.innerText = qtdeItens;
     if (btnProx) btnProx.disabled = false;
     renderTotalBreakdown();
 }
@@ -521,6 +526,7 @@ window.abrirModal = (id) => {
     atualizarSubtotalModal();
     
     document.getElementById("obs").value = "";
+    document.getElementById("obsContainer").style.display = "none";
     document.getElementById("confirmar").style.display = "block";
     document.getElementById("postAddActions").style.display = "none";
 
@@ -578,6 +584,25 @@ document.getElementById("confirmar").onclick = () => {
 
 document.getElementById("btnContinuar").onclick = () => toggleModal(false);
 document.getElementById("btnIrCarrinho").onclick = () => { toggleModal(false); toggleCart(true); };
+
+const btnCartMobile = document.getElementById("btnCartMobile");
+if(btnCartMobile) {
+    btnCartMobile.onclick = () => {
+        toggleCart(true);
+    };
+}
+
+const btnToggleObs = document.getElementById("btnToggleObs");
+if(btnToggleObs) {
+    btnToggleObs.onclick = () => {
+        const obsContainer = document.getElementById("obsContainer");
+        const isHidden = obsContainer.style.display === "none";
+        obsContainer.style.display = isHidden ? "block" : "none";
+        if (isHidden) {
+            document.getElementById("obs").focus();
+        }
+    };
+}
 
 // Filtros de Categoria
 function vincularFiltros() {

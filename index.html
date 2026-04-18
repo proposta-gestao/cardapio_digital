@@ -320,8 +320,13 @@
                     </div>
 
                     <div class="observation-wrapper">
-                        <label for="obs">Alguma observação?</label>
-                        <textarea id="obs" placeholder="Ex: Sem cebola, ponto da carne, etc."></textarea>
+                        <button type="button" class="btn-toggle-obs" id="btnToggleObs">
+                            <span>📝</span> Adicionar Observação
+                        </button>
+                        <div id="obsContainer" style="display: none;">
+                            <label for="obs" style="display: none;">Alguma observação?</label>
+                            <textarea id="obs" placeholder="Ex: Sem cebola, ponto da carne, etc."></textarea>
+                        </div>
                     </div>
 
                     <div class="modal-actions-container">
@@ -337,6 +342,19 @@
             </div>
         </div>
     </section>
+
+    <!-- Floating Mobile Cart Button -->
+    <div class="floating-cart-mobile" id="floatingCartBtn">
+        <button class="cart-toggle-mobile" id="btnCartMobile" aria-label="Ver carrinho">
+            <div class="cart-info-mobile">
+                <span class="cart-icon">🛒</span>
+                <span class="cart-count-mobile" id="contadorMobile">0</span> itens
+            </div>
+            <div class="cart-total-mobile">
+                Ver Carrinho
+            </div>
+        </button>
+    </div>
 
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
